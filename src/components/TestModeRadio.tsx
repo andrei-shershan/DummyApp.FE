@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 // Temporary BFF host constant (use empty string to fall back to relative `/api` proxy)
-const BFF_HOST = 'http://bff.dummy.localhost';
+const BFF_HOST = 'https://bff.dummy.localhost';
 const API_URL = `${BFF_HOST}/api/test/testX`;
 const API_URL_X2 = `${BFF_HOST}/api/test/testX2`;
 

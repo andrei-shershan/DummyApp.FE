@@ -3,7 +3,7 @@ import logo from './logo.svg';
 import './App.css';
 import TestModeRadio from './components/TestModeRadio';
 
-const BFF_HOST = 'http://bff.dummy.localhost';
+const BFF_HOST = 'https://bff.dummy.localhost';
 
 interface UserInfo {
   isAuthenticated: boolean;
