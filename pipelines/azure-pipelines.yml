@@ -1,10 +1,9 @@
-trigger: none
-pr:
-  branches:
-    include:
-      - main
+
+trigger:
+  - main
 
 stages:
+
 - stage: Build
   displayName: Build
   jobs:
@@ -37,11 +36,11 @@ stages:
     - publish: $(Build.ArtifactStagingDirectory)/site.zip
       artifact: drop
 
-- stage: DeployTest
 
+- stage: DeployTest
   displayName: 'Deploy test'
   dependsOn: Build
-  condition: succeeded()
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Manual')))
   jobs:
   - deployment: Deploy
     environment: $(PIPELINES_ENVIRONMENT_TEST)
@@ -62,10 +61,11 @@ stages:
               startUpCommand: 'pm2 serve /home/site/wwwroot --no-daemon --spa'
             displayName: 'Deploy to Azure Web App'
 
+
 - stage: DeployProd
   displayName: 'Deploy prod'
   dependsOn: DeployTest
-  condition: succeeded()
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Manual')))
   jobs:
   - deployment: DeployProd
     environment: $(PIPELINES_ENVIRONMENT_PROD)
