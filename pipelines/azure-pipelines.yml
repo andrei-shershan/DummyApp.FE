@@ -1,10 +1,9 @@
-trigger: none
-pr:
-  branches:
-    include:
-      - main
+
+trigger:
+  - main
 
 stages:
+
 - stage: Build
   displayName: Build
   jobs:
@@ -37,14 +36,14 @@ stages:
     - publish: $(Build.ArtifactStagingDirectory)/site.zip
       artifact: drop
 
-- stage: Deploy
 
+- stage: DeployTest
   displayName: 'Deploy test'
   dependsOn: Build
-  condition: succeeded()
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Manual')))
   jobs:
   - deployment: Deploy
-    environment: $(TEST_ENVIRONMENT_NAME)
+    environment: $(PIPELINES_ENVIRONMENT_TEST)
     pool:
       vmImage: 'ubuntu-latest'
     strategy:
@@ -56,20 +55,20 @@ stages:
 
           - task: AzureWebApp@1
             inputs:
-              azureSubscription: '$(AZURE_SUBSCRIPTION)' # pipeline variable
-              appName: '$(TEST_APP_NAME)' # pipeline variable
+              azureSubscription: '$(SERVICE_CONNECTION_TEST)' # pipeline variable
+              appName: '$(APP_NAME_TEST)' # pipeline variable
               package: '$(Pipeline.Workspace)/drop/site.zip'
               startUpCommand: 'pm2 serve /home/site/wwwroot --no-daemon --spa'
             displayName: 'Deploy to Azure Web App'
 
 
-- stage: Deploy
+- stage: DeployProd
   displayName: 'Deploy prod'
-  dependsOn: Deploy
-  condition: succeeded()
+  dependsOn: DeployTest
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Manual')))
   jobs:
   - deployment: DeployProd
-    environment: $(PROD_ENVIRONMENT_NAME)
+    environment: $(PIPELINES_ENVIRONMENT_PROD)
     pool:
       vmImage: 'ubuntu-latest'
     strategy:
@@ -81,8 +80,8 @@ stages:
 
           - task: AzureWebApp@1
             inputs:
-              azureSubscription: '$(AZURE_SUBSCRIPTION)' # prod pipeline variable
-              appName: '$(PROD_APP_NAME)' # prod pipeline variable
+              azureSubscription: '$(SERVICE_CONNECTION_PROD)' # prod pipeline variable
+              appName: '$(APP_NAME_PROD)' # prod pipeline variable
               package: '$(Pipeline.Workspace)/drop/site.zip'
               startUpCommand: 'pm2 serve /home/site/wwwroot --no-daemon --spa'
             displayName: 'Deploy to Azure Web App (Prod)'
