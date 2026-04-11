@@ -1,10 +1,6 @@
+
 trigger: none
 pr: none
-
-variables:
-  azureSubscription: 'YOUR-SERVICE-CONNECTION' # set this in pipeline variables later
-  appName: 'YOUR_APP_SERVICE_NAME'             # set this in pipeline variables later
-  environmentName: 'production'                # set deployment environment name if needed
 
 stages:
 - stage: Build
@@ -26,9 +22,9 @@ stages:
         npm run build
       workingDirectory: '$(Build.SourcesDirectory)'
       env:
-        AZURE_SUBSCRIPTION: $(azureSubscription)
-        APP_NAME: $(appName)
-        ENVIRONMENT_NAME: $(environmentName)
+        AZURE_SUBSCRIPTION: $(AZURE_SUBSCRIPTION)
+        APP_NAME: $(APP_NAME)
+        ENVIRONMENT_NAME: $(ENVIRONMENT_NAME)
       displayName: 'npm install and build'
 
     - task: ArchiveFiles@2
@@ -49,7 +45,7 @@ stages:
   condition: succeeded()
   jobs:
   - deployment: Deploy
-    environment: $(environmentName)
+    environment: $(ENVIRONMENT_NAME)
     pool:
       vmImage: 'ubuntu-latest'
     strategy:
@@ -60,12 +56,8 @@ stages:
             artifact: drop
 
           - task: AzureWebApp@1
-            env:
-              AZURE_SUBSCRIPTION: $(azureSubscription)
-              APP_NAME: $(appName)
-              ENVIRONMENT_NAME: $(environmentName)
             inputs:
-              azureSubscription: '$(azureSubscription)' # pipeline variable
-              appName: '$(appName)' # pipeline variable
+              azureSubscription: '$(AZURE_SUBSCRIPTION)' # pipeline variable
+              appName: '$(APP_NAME)' # pipeline variable
               package: '$(Pipeline.Workspace)/drop/site.zip'
             displayName: 'Deploy to Azure Web App'
