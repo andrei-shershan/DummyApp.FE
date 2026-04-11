@@ -2,6 +2,9 @@
 trigger:
   - main
 
+# Disable PR trigger as build validation is covered by GitHub Actions
+pr: none
+
 stages:
 
 - stage: Build
