@@ -21,10 +21,6 @@ stages:
         npm ci
         npm run build
       workingDirectory: '$(Build.SourcesDirectory)'
-      env:
-        AZURE_SUBSCRIPTION: $(AZURE_SUBSCRIPTION)
-        APP_NAME: $(APP_NAME)
-        ENVIRONMENT_NAME: $(ENVIRONMENT_NAME)
       displayName: 'npm install and build'
 
     - task: ArchiveFiles@2
@@ -60,4 +56,5 @@ stages:
               azureSubscription: '$(AZURE_SUBSCRIPTION)' # pipeline variable
               appName: '$(APP_NAME)' # pipeline variable
               package: '$(Pipeline.Workspace)/drop/site.zip'
+              startUpCommand: 'pm2 serve /home/site/wwwroot --no-daemon --spa'
             displayName: 'Deploy to Azure Web App'
