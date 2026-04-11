@@ -1,5 +1,5 @@
-trigger:
-  - main
+trigger: none
+pr: none
 
 variables:
   azureSubscription: 'YOUR-SERVICE-CONNECTION' # set this in pipeline variables later
