@@ -1,0 +1,71 @@
+trigger:
+  - main
+
+variables:
+  azureSubscription: 'YOUR-SERVICE-CONNECTION' # set this in pipeline variables later
+  appName: 'YOUR_APP_SERVICE_NAME'             # set this in pipeline variables later
+  environmentName: 'production'                # set deployment environment name if needed
+
+stages:
+- stage: Build
+  displayName: Build
+  jobs:
+  - job: Build
+    displayName: Build job
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '18.x'
+      displayName: 'Use Node 18'
+
+    - script: |
+        cd ./
+        npm ci
+        npm run build
+      workingDirectory: '$(Build.SourcesDirectory)'
+      env:
+        AZURE_SUBSCRIPTION: $(azureSubscription)
+        APP_NAME: $(appName)
+        ENVIRONMENT_NAME: $(environmentName)
+      displayName: 'npm install and build'
+
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: 'build'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/site.zip'
+        replaceExistingArchive: true
+      displayName: 'Archive build output'
+
+    - publish: $(Build.ArtifactStagingDirectory)/site.zip
+      artifact: drop
+
+- stage: Deploy
+  displayName: Deploy
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - deployment: Deploy
+    environment: $(environmentName)
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: drop
+
+          - task: AzureWebApp@1
+            env:
+              AZURE_SUBSCRIPTION: $(azureSubscription)
+              APP_NAME: $(appName)
+              ENVIRONMENT_NAME: $(environmentName)
+            inputs:
+              azureSubscription: '$(azureSubscription)' # pipeline variable
+              appName: '$(appName)' # pipeline variable
+              package: '$(Pipeline.Workspace)/drop/site.zip'
+            displayName: 'Deploy to Azure Web App'
