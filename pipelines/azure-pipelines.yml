@@ -63,9 +63,9 @@ stages:
             displayName: 'Deploy to Azure Web App'
 
 
-- stage: DeployProd
+ - stage: DeployProd
   displayName: 'Deploy prod'
-  dependsOn: Deploy
+  dependsOn: DeployTest
   condition: succeeded()
   jobs:
   - deployment: DeployProd
