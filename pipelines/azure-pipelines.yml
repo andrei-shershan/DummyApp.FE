@@ -1,0 +1,88 @@
+trigger: none
+pr:
+  branches:
+    include:
+      - main
+
+stages:
+- stage: Build
+  displayName: Build
+  jobs:
+  - job: Build
+    displayName: Build job
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '24.x'
+      displayName: 'Use Node 24'
+
+    - script: |
+        cd ./
+        npm ci
+        npm run build
+      workingDirectory: '$(Build.SourcesDirectory)'
+      displayName: 'npm install and build'
+
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: 'build'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/site.zip'
+        replaceExistingArchive: true
+      displayName: 'Archive build output'
+
+    - publish: $(Build.ArtifactStagingDirectory)/site.zip
+      artifact: drop
+
+- stage: Deploy
+
+  displayName: 'Deploy test'
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - deployment: Deploy
+    environment: $(TEST_ENVIRONMENT_NAME)
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: drop
+
+          - task: AzureWebApp@1
+            inputs:
+              azureSubscription: '$(AZURE_SUBSCRIPTION)' # pipeline variable
+              appName: '$(TEST_APP_NAME)' # pipeline variable
+              package: '$(Pipeline.Workspace)/drop/site.zip'
+              startUpCommand: 'pm2 serve /home/site/wwwroot --no-daemon --spa'
+            displayName: 'Deploy to Azure Web App'
+
+
+- stage: Deploy
+  displayName: 'Deploy prod'
+  dependsOn: Deploy
+  condition: succeeded()
+  jobs:
+  - deployment: DeployProd
+    environment: $(PROD_ENVIRONMENT_NAME)
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: drop
+
+          - task: AzureWebApp@1
+            inputs:
+              azureSubscription: '$(AZURE_SUBSCRIPTION)' # prod pipeline variable
+              appName: '$(PROD_APP_NAME)' # prod pipeline variable
+              package: '$(Pipeline.Workspace)/drop/site.zip'
+              startUpCommand: 'pm2 serve /home/site/wwwroot --no-daemon --spa'
+            displayName: 'Deploy to Azure Web App (Prod)'
