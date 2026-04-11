@@ -56,7 +56,7 @@ stages:
 
           - task: AzureWebApp@1
             inputs:
-              azureSubscription: '$(AZURE_SUBSCRIPTION)' # pipeline variable
+              azureSubscription: '$(SERVICE_CONNECTION_TEST)' # pipeline variable
               appName: '$(APP_NAME_TEST)' # pipeline variable
               package: '$(Pipeline.Workspace)/drop/site.zip'
               startUpCommand: 'pm2 serve /home/site/wwwroot --no-daemon --spa'
@@ -81,7 +81,7 @@ stages:
 
           - task: AzureWebApp@1
             inputs:
-              azureSubscription: '$(AZURE_SUBSCRIPTION)' # prod pipeline variable
+              azureSubscription: '$(SERVICE_CONNECTION_PROD)' # prod pipeline variable
               appName: '$(APP_NAME_PROD)' # prod pipeline variable
               package: '$(Pipeline.Workspace)/drop/site.zip'
               startUpCommand: 'pm2 serve /home/site/wwwroot --no-daemon --spa'
