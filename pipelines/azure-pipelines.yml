@@ -62,8 +62,7 @@ stages:
               startUpCommand: 'pm2 serve /home/site/wwwroot --no-daemon --spa'
             displayName: 'Deploy to Azure Web App'
 
-
- - stage: DeployProd
+- stage: DeployProd
   displayName: 'Deploy prod'
   dependsOn: DeployTest
   condition: succeeded()
