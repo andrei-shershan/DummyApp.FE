@@ -34,6 +34,11 @@ function App() {
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
+        <div>
+          <p>
+            HELLO WORLD
+          </p>
+        </div>
 
         {/* Auth bar */}
         <div style={{ marginBottom: '1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
