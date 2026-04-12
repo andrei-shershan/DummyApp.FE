@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import TestModeRadio from './components/TestModeRadio';
-
-const BFF_HOST = 'https://bff.dummy.localhost';
+import { BFF_HOST } from './config';
 
 interface UserInfo {
   isAuthenticated: boolean;

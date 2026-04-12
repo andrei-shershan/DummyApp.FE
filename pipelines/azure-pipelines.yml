@@ -56,6 +56,10 @@ stages:
           - download: current
             artifact: drop
 
+          - script: |
+              echo "window.__CONFIG__ = { BFF_HOST: '$(REACT_APP_BFF_HOST_TEST)' };" > $(Pipeline.Workspace)/drop/config.js
+            displayName: 'Inject runtime config (test)'
+
           - task: AzureWebApp@1
             inputs:
               azureSubscription: '$(SERVICE_CONNECTION_TEST)' # pipeline variable
@@ -80,6 +84,10 @@ stages:
           steps:
           - download: current
             artifact: drop
+
+          - script: |
+              echo "window.__CONFIG__ = { BFF_HOST: '$(REACT_APP_BFF_HOST_PROD)' };" > $(Pipeline.Workspace)/drop/config.js
+            displayName: 'Inject runtime config (prod)'
 
           - task: AzureWebApp@1
             inputs:
