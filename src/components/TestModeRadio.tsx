@@ -3,6 +3,7 @@ import { BFF_HOST } from '../config';
 
 const API_URL = `${BFF_HOST}/api/test/testX`;
 const API_URL_X2 = `${BFF_HOST}/api/test/testX2`;
+const API_URL_MESSAGE = `${BFF_HOST}/api/message`;
 
 type Mode = 'R' | 'W';
 
@@ -19,6 +20,10 @@ function TestModeRadio({ isAuthenticated }: Props) {
   const [resultX2, setResultX2] = useState<string>('');
   const [loadingX2, setLoadingX2] = useState(false);
   const [errorX2, setErrorX2] = useState<string>('');
+
+  const [message, setMessage] = useState<string>('');
+  const [loadingMessage, setLoadingMessage] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -69,6 +74,30 @@ function TestModeRadio({ isAuthenticated }: Props) {
       setErrorX2(fetchError instanceof Error ? fetchError.message : String(fetchError));
     } finally {
       setLoadingX2(false);
+    }
+  };
+
+  const handleGetMessage = async () => {
+    setLoadingMessage(true);
+    setErrorMessage('');
+    setMessage('');
+
+    try {
+      const response = await fetch(API_URL_MESSAGE, {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} ${response.statusText}`);
+      }
+
+      const json = await response.json();
+      setMessage(json.message ?? JSON.stringify(json));
+    } catch (fetchError) {
+      setErrorMessage(fetchError instanceof Error ? fetchError.message : String(fetchError));
+    } finally {
+      setLoadingMessage(false);
     }
   };
 
@@ -139,6 +168,31 @@ function TestModeRadio({ isAuthenticated }: Props) {
         <div style={{ minWidth: '220px', textAlign: 'center', marginTop: '0.5rem' }}>
           {resultX2 ? <pre style={{ color: '#85e89d', fontSize: '0.8rem', textAlign: 'left' }}>{resultX2}</pre> : null}
           {errorX2 ? <div style={{ color: '#ffb3b3' }}>Ошибка: {errorX2}</div> : null}
+        </div>
+      </div>
+
+      {/* Get Message – reads TestMessage from Key Vault via ApiGateway */}
+      <div>
+        <div style={{ marginBottom: '0.5rem', fontSize: '0.85rem', color: '#aaa' }}>
+          Get Message — читает TestMessage из Key Vault (через ApiGateway)
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button
+            type="button"
+            onClick={handleGetMessage}
+            disabled={loadingMessage}
+            style={{
+              ...buttonStyle(loadingMessage),
+              border: '1px solid #e3b341',
+              background: loadingMessage ? '#3d6f8b' : '#e3b341',
+            }}
+          >
+            {loadingMessage ? 'Запрос...' : 'Get Message'}
+          </button>
+        </div>
+        <div style={{ minWidth: '220px', textAlign: 'center', marginTop: '0.5rem' }}>
+          {message ? <div style={{ color: '#e3b341', fontSize: '0.95rem' }}>{message}</div> : null}
+          {errorMessage ? <div style={{ color: '#ffb3b3' }}>Ошибка: {errorMessage}</div> : null}
         </div>
       </div>
 
