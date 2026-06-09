@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import TestModeRadio from './components/TestModeRadio';
+import ArtworkUploadForm from './components/ArtworkUploadForm';
+import ArtworkList from './components/ArtworkList';
 import { BFF_HOST } from './config';
 
 interface UserInfo {
@@ -9,10 +11,12 @@ interface UserInfo {
   sub?: string;
   name?: string;
   email?: string;
+  roles?: string[];
 }
 
 function App() {
   const [user, setUser] = useState<UserInfo | null>(null);
+  const [route, setRoute] = useState(window.location.pathname);
 
   useEffect(() => {
     fetch(`${BFF_HOST}/me`, { credentials: 'include' })
@@ -20,6 +24,17 @@ function App() {
       .then((data: UserInfo) => setUser(data))
       .catch(() => setUser({ isAuthenticated: false }));
   }, []);
+
+  useEffect(() => {
+    const onPopState = () => setRoute(window.location.pathname);
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  const navigate = (path: string) => {
+    window.history.pushState(null, '', path);
+    setRoute(path);
+  };
 
   const handleLogin = () => {
     window.location.href = `${BFF_HOST}/login`;
@@ -33,6 +48,15 @@ function App() {
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
+
+        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
+          <button onClick={() => navigate('/')} style={navButtonStyle}>
+            Home
+          </button>
+          <button onClick={() => navigate('/artworks')} style={navButtonStyle}>
+            Artworks
+          </button>
+        </div>
 
         {/* Auth bar */}
         <div style={{ marginBottom: '1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -63,9 +87,33 @@ function App() {
         <div style={{ marginTop: '0.5rem' }}>
           <TestModeRadio isAuthenticated={user?.isAuthenticated ?? false} />
         </div>
+
+        {route === '/artworks' ? (
+          <ArtworkList />
+        ) : (
+          <>
+            {user?.isAuthenticated && user.roles?.includes('Creator') ? (
+              <ArtworkUploadForm />
+            ) : (
+              <div style={{ marginTop: '1.5rem', color: '#aaa', maxWidth: '480px' }}>
+                <p>Добро пожаловать! Здесь авторизованные создатели могут загружать новые работы.</p>
+                <p>Перейдите на страницу <strong>Artworks</strong>, чтобы просмотреть доступные работы.</p>
+              </div>
+            )}
+          </>
+        )}
       </header>
     </div>
   );
 }
+
+const navButtonStyle: React.CSSProperties = {
+  padding: '0.35rem 0.75rem',
+  borderRadius: '0.4rem',
+  border: '1px solid #61dafb',
+  background: 'transparent',
+  color: '#61dafb',
+  cursor: 'pointer',
+};
 
 export default App;
