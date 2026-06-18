@@ -7,6 +7,7 @@ interface ArtworkFormData {
   creationDate: string;
   isActive: boolean;
   uploadedImage: string | null;
+  fileName: string | null;
 }
 
 interface Props {
@@ -20,6 +21,7 @@ function ArtworkUploadForm({ onCreated }: Props) {
     creationDate: new Date().toISOString().split('T')[0],
     isActive: true,
     uploadedImage: null,
+    fileName: null,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
@@ -31,7 +33,11 @@ function ArtworkUploadForm({ onCreated }: Props) {
     const reader = new FileReader();
     reader.onload = () => {
       const base64 = (reader.result as string).split(',')[1];
-      setForm(prev => ({ ...prev, uploadedImage: base64 }));
+      setForm(prev => ({
+        ...prev,
+        uploadedImage: base64,
+        fileName: file.name,
+      }));
     };
     reader.readAsDataURL(file);
   };
@@ -55,6 +61,7 @@ function ArtworkUploadForm({ onCreated }: Props) {
           smallImgUrl: '',
           isActive: form.isActive,
           uploadedImage: form.uploadedImage,
+          fileName: form.fileName,
         }),
       });
 
@@ -65,7 +72,14 @@ function ArtworkUploadForm({ onCreated }: Props) {
 
       const result = await response.json();
       setSuccess(`Artwork created (id: ${result.id})`);
-      setForm({ name: '', description: '', creationDate: new Date().toISOString().split('T')[0], isActive: true, uploadedImage: null });
+      setForm({
+        name: '',
+        description: '',
+        creationDate: new Date().toISOString().split('T')[0],
+        isActive: true,
+        uploadedImage: null,
+        fileName: null,
+      });
     } catch (err: any) {
       setError(err.message ?? 'Unknown error');
     } finally {
