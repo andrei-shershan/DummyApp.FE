@@ -10,11 +10,15 @@ interface Artwork {
   creationDate: string;
   uploadDate: string;
   imgUrl: string;
-  smallImgUrl: string;
+  thumbnailUrl: string;
   isActive: boolean;
 }
 
-function ArtworkList() {
+interface ArtworkListProps {
+  creatorId?: string;
+}
+
+function ArtworkList({ creatorId }: ArtworkListProps) {
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -25,7 +29,8 @@ function ArtworkList() {
       setError('');
 
       try {
-        const response = await fetch(`${BFF_HOST}/api/artworks`, {
+        const url = creatorId ? `${BFF_HOST}/api/artworks/creator/${encodeURIComponent(creatorId)}` : `${BFF_HOST}/api/artworks`;
+        const response = await fetch(url, {
           credentials: 'include',
         });
 
@@ -44,11 +49,11 @@ function ArtworkList() {
     }
 
     loadArtworks();
-  }, []);
+  }, [creatorId]);
 
   return (
     <section style={{ width: '100%', maxWidth: '900px', marginTop: '1.5rem', textAlign: 'left' }}>
-      <h2 style={{ color: '#61dafb' }}>Artworks</h2>
+      <h2 style={{ color: '#61dafb' }}>{creatorId ? 'My Works' : 'Artworks'}</h2>
       {loading && <p>Loading artworks...</p>}
       {error && <p style={{ color: '#f97583' }}>{error}</p>}
       {!loading && !error && artworks.length === 0 && <p>No artworks found.</p>}

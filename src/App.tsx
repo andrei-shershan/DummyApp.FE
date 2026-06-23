@@ -8,6 +8,7 @@ import { BFF_HOST } from './config';
 
 interface UserInfo {
   isAuthenticated: boolean;
+  id?: string;
   sub?: string;
   name?: string;
   email?: string;
@@ -16,13 +17,20 @@ interface UserInfo {
 
 function App() {
   const [user, setUser] = useState<UserInfo | null>(null);
+  const [creatorId, setCreatorId] = useState<string | undefined>(undefined);
   const [route, setRoute] = useState(window.location.pathname);
 
   useEffect(() => {
     fetch(`${BFF_HOST}/me`, { credentials: 'include' })
       .then(r => r.json())
-      .then((data: UserInfo) => setUser(data))
-      .catch(() => setUser({ isAuthenticated: false }));
+      .then((data: UserInfo) => {
+        setUser(data);
+        setCreatorId(data.id ?? data.sub);
+      })
+      .catch(() => {
+        setUser({ isAuthenticated: false });
+        setCreatorId(undefined);
+      });
   }, []);
 
   useEffect(() => {
@@ -56,6 +64,11 @@ function App() {
           <button onClick={() => navigate('/artworks')} style={navButtonStyle}>
             Artworks
           </button>
+          {user?.isAuthenticated && creatorId ? (
+            <button onClick={() => navigate('/my-works')} style={navButtonStyle}>
+              My Works
+            </button>
+          ) : null}
         </div>
 
         {/* Auth bar */}
@@ -90,6 +103,8 @@ function App() {
 
         {route === '/artworks' ? (
           <ArtworkList />
+        ) : route === '/my-works' ? (
+          <ArtworkList creatorId={creatorId} />
         ) : (
           <>
             {user?.isAuthenticated && user.roles?.includes('Creator') ? (
