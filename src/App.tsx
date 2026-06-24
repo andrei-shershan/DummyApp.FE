@@ -4,6 +4,7 @@ import './App.css';
 import TestModeRadio from './components/TestModeRadio';
 import ArtworkUploadForm from './components/ArtworkUploadForm';
 import ArtworkList from './components/ArtworkList';
+import AdminPanel from './components/AdminPanel';
 import { BFF_HOST } from './config';
 
 interface UserInfo {
@@ -69,6 +70,11 @@ function App() {
               My Works
             </button>
           ) : null}
+          {user?.isAuthenticated && user.roles?.includes('Admin') ? (
+            <button onClick={() => navigate('/admin')} style={navButtonStyle}>
+              Admin Panel
+            </button>
+          ) : null}
         </div>
 
         {/* Auth bar */}
@@ -105,6 +111,8 @@ function App() {
           <ArtworkList />
         ) : route === '/my-works' ? (
           <ArtworkList creatorId={creatorId} />
+        ) : route === '/admin' ? (
+          <AdminPanel />
         ) : (
           <>
             {user?.isAuthenticated && user.roles?.includes('Creator') ? (
