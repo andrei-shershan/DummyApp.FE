@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BFF_HOST } from '../config';
+import InviteCreatorForm from './InviteCreatorForm';
 
 interface UserDto {
   id: string;
@@ -94,6 +95,7 @@ function AdminPanel() {
               </ul>
             )}
           </div>
+          <InviteCreatorForm />
         </>
       )}
     </section>
