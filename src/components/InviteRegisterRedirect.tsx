@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { BFF_HOST } from '../config';
 
 function InviteRegisterRedirect() {
   const [identityUrl, setIdentityUrl] = useState<string>('');
@@ -11,11 +12,7 @@ function InviteRegisterRedirect() {
     }
 
     const frontendUrl = window.location.origin;
-    const identityBase = window.location.origin.includes('localhost')
-      ? 'https://identity.dummy.localhost'
-      : `${window.location.protocol}//identity.${window.location.host}`;
-
-    const url = `${identityBase}/account/register/${encodeURIComponent(token)}?returnUrl=${encodeURIComponent(frontendUrl)}`;
+    const url = `${BFF_HOST}/register/${encodeURIComponent(token)}?returnUrl=${encodeURIComponent(frontendUrl)}`;
     setIdentityUrl(url);
     window.location.href = url;
   }, []);
