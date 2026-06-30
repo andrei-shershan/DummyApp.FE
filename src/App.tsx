@@ -5,6 +5,7 @@ import TestModeRadio from './components/TestModeRadio';
 import ArtworkUploadForm from './components/ArtworkUploadForm';
 import ArtworkList from './components/ArtworkList';
 import AdminPanel from './components/AdminPanel';
+import InviteRegisterRedirect from './components/InviteRegisterRedirect';
 import { BFF_HOST } from './config';
 
 interface UserInfo {
@@ -107,7 +108,9 @@ function App() {
           <TestModeRadio isAuthenticated={user?.isAuthenticated ?? false} />
         </div>
 
-        {route === '/artworks' ? (
+        {route.startsWith('/register/') ? (
+          <InviteRegisterRedirect />
+        ) : route === '/artworks' ? (
           <ArtworkList />
         ) : route === '/my-works' ? (
           <ArtworkList creatorId={creatorId} />
