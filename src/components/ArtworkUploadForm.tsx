@@ -5,7 +5,6 @@ interface ArtworkFormData {
   name: string;
   description: string;
   creationDate: string;
-  isActive: boolean;
   uploadedImage: string | null;
   fileName: string | null;
 }
@@ -19,7 +18,6 @@ function ArtworkUploadForm({ onCreated }: Props) {
     name: '',
     description: '',
     creationDate: new Date().toISOString().split('T')[0],
-    isActive: true,
     uploadedImage: null,
     fileName: null,
   });
@@ -59,7 +57,6 @@ function ArtworkUploadForm({ onCreated }: Props) {
           creationDate: new Date(form.creationDate).toISOString(),
           imgUrl: '',
           smallImgUrl: '',
-          isActive: form.isActive,
           uploadedImage: form.uploadedImage,
           fileName: form.fileName,
         }),
@@ -76,7 +73,6 @@ function ArtworkUploadForm({ onCreated }: Props) {
         name: '',
         description: '',
         creationDate: new Date().toISOString().split('T')[0],
-        isActive: true,
         uploadedImage: null,
         fileName: null,
       });
@@ -119,14 +115,6 @@ function ArtworkUploadForm({ onCreated }: Props) {
             required
             style={inputStyle}
           />
-        </label>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <input
-            type="checkbox"
-            checked={form.isActive}
-            onChange={e => setForm(prev => ({ ...prev, isActive: e.target.checked }))}
-          />
-          Active
         </label>
         <label>
           Image

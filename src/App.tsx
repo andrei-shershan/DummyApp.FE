@@ -4,6 +4,7 @@ import './App.css';
 import TestModeRadio from './components/TestModeRadio';
 import ArtworkUploadForm from './components/ArtworkUploadForm';
 import ArtworkList from './components/ArtworkList';
+import ArtworkDetails from './components/ArtworkDetails';
 import AdminPanel from './components/AdminPanel';
 import InviteRegisterRedirect from './components/InviteRegisterRedirect';
 import { BFF_HOST } from './config';
@@ -113,7 +114,12 @@ function App() {
         ) : route === '/artworks' ? (
           <ArtworkList />
         ) : route === '/my-works' ? (
-          <ArtworkList creatorId={creatorId} />
+          <ArtworkList creatorId={creatorId} onSelect={id => navigate(`/my-works/${id}`)} />
+        ) : route.startsWith('/my-works/') ? (
+          <ArtworkDetails
+            id={Number(route.replace('/my-works/', ''))}
+            onBack={() => navigate('/my-works')}
+          />
         ) : route === '/admin' ? (
           <AdminPanel />
         ) : (
