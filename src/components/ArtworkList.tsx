@@ -5,7 +5,6 @@ interface Artwork {
   id: number;
   creatorId: string;
   name: string;
-  publicName: string;
   description: string;
   creationDate: string;
   uploadDate: string;
@@ -16,9 +15,10 @@ interface Artwork {
 
 interface ArtworkListProps {
   creatorId?: string;
+  onSelect?: (id: number) => void;
 }
 
-function ArtworkList({ creatorId }: ArtworkListProps) {
+function ArtworkList({ creatorId, onSelect }: ArtworkListProps) {
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -29,7 +29,8 @@ function ArtworkList({ creatorId }: ArtworkListProps) {
       setError('');
 
       try {
-        const url = creatorId ? `${BFF_HOST}/api/artworks/creator/${encodeURIComponent(creatorId)}` : `${BFF_HOST}/api/artworks`;
+        const query = creatorId ? `?creatorId=${encodeURIComponent(creatorId)}` : '';
+        const url = `${BFF_HOST}/api/artworks${query}`;
         const response = await fetch(url, {
           credentials: 'include',
         });
@@ -59,8 +60,19 @@ function ArtworkList({ creatorId }: ArtworkListProps) {
       {!loading && !error && artworks.length === 0 && <p>No artworks found.</p>}
       <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
         {artworks.map(artwork => (
-          <article key={artwork.id} style={{ padding: '1rem', borderRadius: '0.6rem', border: '1px solid #444', background: '#111827' }}>
-            <h3 style={{ margin: '0 0 0.5rem', color: '#fff' }}>{artwork.publicName || artwork.name}</h3>
+          <article
+            key={artwork.id}
+            onClick={onSelect ? () => onSelect(artwork.id) : undefined}
+            style={{
+              padding: '1rem',
+              borderRadius: '0.6rem',
+              border: '1px solid #444',
+              background: '#111827',
+              cursor: onSelect ? 'pointer' : 'default',
+              transition: 'border-color 0.15s ease, transform 0.15s ease',
+            }}
+          >
+            <h3 style={{ margin: '0 0 0.5rem', color: '#fff' }}>{artwork.name}</h3>
             <p style={{ margin: '0.3rem 0', color: '#aaa' }}><strong>Name:</strong> {artwork.name}</p>
             <p style={{ margin: '0.3rem 0', color: '#aaa' }}><strong>Description:</strong> {artwork.description}</p>
             <p style={{ margin: '0.3rem 0', color: '#aaa' }}><strong>Created:</strong> {new Date(artwork.creationDate).toLocaleDateString()}</p>
@@ -69,10 +81,15 @@ function ArtworkList({ creatorId }: ArtworkListProps) {
             {artwork.imgUrl && (
               <img
                 src={artwork.imgUrl}
-                alt={artwork.publicName || artwork.name}
+                alt={artwork.name}
                 style={{ width: '100%', maxWidth: '320px', marginTop: '0.75rem', borderRadius: '0.5rem' }}
               />
             )}
+            {onSelect ? (
+              <div style={{ marginTop: '0.75rem', color: '#61dafb', fontWeight: 'bold' }}>
+                Click to view details
+              </div>
+            ) : null}
           </article>
         ))}
       </div>
