@@ -119,6 +119,7 @@ function App() {
           <ArtworkDetails
             id={Number(route.replace('/my-works/', ''))}
             onBack={() => navigate('/my-works')}
+            canToggleActive={Boolean(creatorId)}
           />
         ) : route === '/admin' ? (
           <AdminPanel />
