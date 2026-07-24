@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { BFF_HOST } from '../config';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import { useAppContext } from '../context/AppContext';
 
 interface ArtworkFormData {
   name: string;
@@ -9,11 +15,8 @@ interface ArtworkFormData {
   fileName: string | null;
 }
 
-interface Props {
-  onCreated?: (id: number) => void;
-}
-
-function ArtworkUploadForm({ onCreated }: Props) {
+function ArtworkUploadForm() {
+  const { createArtwork } = useAppContext();
   const [form, setForm] = useState<ArtworkFormData>({
     name: '',
     description: '',
@@ -22,134 +25,96 @@ function ArtworkUploadForm({ onCreated }: Props) {
     fileName: null,
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
+  const [error, setError] = useState<string>('');
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = () => {
-      const base64 = (reader.result as string).split(',')[1];
+      const result = reader.result as string;
       setForm(prev => ({
         ...prev,
-        uploadedImage: base64,
+        uploadedImage: result.split(',')[1],
         fileName: file.name,
       }));
     };
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setLoading(true);
     setError('');
     setSuccess('');
 
     try {
-      const response = await fetch(`${BFF_HOST}/api/artworks`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: form.name,
-          description: form.description,
-          creationDate: new Date(form.creationDate).toISOString(),
-          imgUrl: '',
-          smallImgUrl: '',
-          uploadedImage: form.uploadedImage,
-          fileName: form.fileName,
-        }),
+      await createArtwork({
+        name: form.name,
+        description: form.description,
+        creationDate: new Date(form.creationDate).toISOString(),
+        uploadedImage: form.uploadedImage,
+        fileName: form.fileName,
       });
-
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`HTTP ${response.status}: ${text}`);
-      }
-
-      const result = await response.json();
-      setSuccess(`Artwork created (id: ${result.id})`);
-      setForm({
-        name: '',
-        description: '',
-        creationDate: new Date().toISOString().split('T')[0],
-        uploadedImage: null,
-        fileName: null,
-      });
+      setSuccess('Artwork created successfully.');
+      setForm({ name: '', description: '', creationDate: new Date().toISOString().split('T')[0], uploadedImage: null, fileName: null });
     } catch (err: any) {
-      setError(err.message ?? 'Unknown error');
+      setError(err?.message ?? 'Unable to create artwork.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <section style={{ marginTop: '1.5rem', textAlign: 'left', maxWidth: '420px' }}>
-      <h3 style={{ marginBottom: '0.75rem', color: '#61dafb' }}>Upload Artwork</h3>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-        <label>
-          Name
-          <input
-            type="text"
+    <Card sx={{ mt: 4, maxWidth: 720 }}>
+      <CardContent>
+        <Typography variant="h5" gutterBottom>
+          Upload Artwork
+        </Typography>
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: 'grid', gap: 2 }}>
+          <TextField
+            label="Name"
             value={form.name}
             onChange={e => setForm(prev => ({ ...prev, name: e.target.value }))}
             required
-            style={inputStyle}
+            fullWidth
           />
-        </label>
-        <label>
-          Description
-          <textarea
+          <TextField
+            label="Description"
             value={form.description}
+            multiline
+            rows={4}
             onChange={e => setForm(prev => ({ ...prev, description: e.target.value }))}
-            rows={3}
-            style={{ ...inputStyle, resize: 'vertical' }}
+            fullWidth
           />
-        </label>
-        <label>
-          Creation date
-          <input
+          <TextField
+            label="Creation Date"
             type="date"
             value={form.creationDate}
+            InputLabelProps={{ shrink: true }}
             onChange={e => setForm(prev => ({ ...prev, creationDate: e.target.value }))}
-            required
-            style={inputStyle}
+            fullWidth
           />
-        </label>
-        <label>
-          Image
-          <input type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'block', marginTop: '0.25rem' }} />
-        </label>
-        <button type="submit" disabled={loading} style={buttonStyle}>
-          {loading ? 'Uploading...' : 'Create'}
-        </button>
-        {error && <span style={{ color: '#f97583' }}>{error}</span>}
-        {success && <span style={{ color: '#85e89d' }}>{success}</span>}
-      </form>
-    </section>
+          <Button variant="outlined" component="label" sx={{ alignSelf: 'flex-start' }}>
+            Upload Image
+            <input hidden accept="image/*" type="file" onChange={handleFileChange} />
+          </Button>
+          {form.fileName && <Typography variant="body2">Selected file: {form.fileName}</Typography>}
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
+            <Button type="submit" variant="contained" disabled={loading || !form.name}>
+              {loading ? 'Creating...' : 'Create'}
+            </Button>
+            {success && <Typography color="success.main">{success}</Typography>}
+            {error && <Typography color="error">{error}</Typography>}
+          </Box>
+        </Box>
+      </CardContent>
+    </Card>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  display: 'block',
-  width: '100%',
-  marginTop: '0.25rem',
-  padding: '0.35rem 0.5rem',
-  borderRadius: '0.3rem',
-  border: '1px solid #444',
-  background: '#1a1a2e',
-  color: '#fff',
-  fontSize: '0.9rem',
-};
-
-const buttonStyle: React.CSSProperties = {
-  padding: '0.45rem 1rem',
-  borderRadius: '0.4rem',
-  border: '1px solid #61dafb',
-  background: 'transparent',
-  color: '#61dafb',
-  cursor: 'pointer',
-  fontSize: '0.9rem',
-};
 
 export default ArtworkUploadForm;

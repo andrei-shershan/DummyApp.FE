@@ -1,31 +1,25 @@
 import React, { useState } from 'react';
-import { BFF_HOST } from '../config';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import { useAppContext } from '../context/AppContext';
 
 function InviteCreatorForm() {
+  const { sendInvite } = useAppContext();
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
     setStatus('');
 
     try {
-      const response = await fetch(`${BFF_HOST}/api/admin/invite`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(text || `HTTP ${response.status}`);
-      }
-
+      await sendInvite(email);
       setStatus('Invite sent successfully.');
       setEmail('');
     } catch (err: any) {
@@ -36,29 +30,31 @@ function InviteCreatorForm() {
   };
 
   return (
-    <section style={{ marginBottom: '2rem' }}>
-      <h3 style={{ color: '#85e89d' }}>Invite Creator</h3>
-      <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '0.75rem', maxWidth: '400px' }}>
-        <label style={{ color: '#aaa' }}>
-          Email
-          <input
-            type="email"
+    <Card>
+      <CardContent>
+        <Typography variant="h5" gutterBottom>
+          Invite Creator
+        </Typography>
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: 'grid', gap: 2, maxWidth: 480 }}>
+          <TextField
+            label="Email"
             value={email}
             onChange={e => setEmail(e.target.value)}
             placeholder="creator@example.com"
-            style={{ width: '100%', padding: '0.5rem', borderRadius: '0.4rem', border: '1px solid #444', background: '#0f172a', color: '#fff' }}
+            required
+            fullWidth
           />
-        </label>
-        <button
-          type="submit"
-          disabled={loading || email.trim() === ''}
-          style={{ padding: '0.6rem 1rem', borderRadius: '0.4rem', border: '1px solid #61dafb', background: '#111827', color: '#61dafb', cursor: 'pointer' }}
-        >
-          {loading ? 'Sending...' : 'Send Invite'}
-        </button>
-        {status && <p style={{ color: status.startsWith('Failed') ? '#f97583' : '#85e89d' }}>{status}</p>}
-      </form>
-    </section>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+            <Button type="submit" variant="contained" disabled={loading || email.trim() === ''}>
+              {loading ? 'Sending...' : 'Send Invite'}
+            </Button>
+            {status && (
+              <Typography color={status.startsWith('Failed') ? 'error' : 'success.main'}>{status}</Typography>
+            )}
+          </Box>
+        </Box>
+      </CardContent>
+    </Card>
   );
 }
 

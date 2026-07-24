@@ -1,25 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { BFF_HOST } from '../config';
-
-interface Artwork {
-  id: number;
-  creatorId: string;
-  name: string;
-  description: string;
-  creationDate: string;
-  uploadDate: string;
-  imgUrl: string;
-  thumbnailUrl: string;
-  isActive: boolean;
-}
+import { getArtworks } from '../api/artworks';
+import { ArtworkDto } from '../types/api';
 
 interface ArtworkListProps {
   creatorId?: string;
-  onSelect?: (id: number) => void;
+  onSelect?: (id: string) => void;
 }
 
 function ArtworkList({ creatorId, onSelect }: ArtworkListProps) {
-  const [artworks, setArtworks] = useState<Artwork[]>([]);
+  const [artworks, setArtworks] = useState<ArtworkDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -29,18 +18,7 @@ function ArtworkList({ creatorId, onSelect }: ArtworkListProps) {
       setError('');
 
       try {
-        const query = creatorId ? `?creatorId=${encodeURIComponent(creatorId)}` : '';
-        const url = `${BFF_HOST}/api/artworks${query}`;
-        const response = await fetch(url, {
-          credentials: 'include',
-        });
-
-        if (!response.ok) {
-          const message = await response.text();
-          throw new Error(`HTTP ${response.status}: ${message}`);
-        }
-
-        const data = await response.json();
+        const data = await getArtworks(creatorId);
         setArtworks(data);
       } catch (err: any) {
         setError(err?.message ?? 'Unable to load artworks.');
@@ -72,16 +50,16 @@ function ArtworkList({ creatorId, onSelect }: ArtworkListProps) {
               transition: 'border-color 0.15s ease, transform 0.15s ease',
             }}
           >
-            <h3 style={{ margin: '0 0 0.5rem', color: '#fff' }}>{artwork.name}</h3>
-            <p style={{ margin: '0.3rem 0', color: '#aaa' }}><strong>Name:</strong> {artwork.name}</p>
+            <h3 style={{ margin: '0 0 0.5rem', color: '#fff' }}>{artwork.name ?? artwork.description ?? 'Untitled artwork'}</h3>
+            <p style={{ margin: '0.3rem 0', color: '#aaa' }}><strong>Name:</strong> {artwork.name ?? 'Untitled'}</p>
             <p style={{ margin: '0.3rem 0', color: '#aaa' }}><strong>Description:</strong> {artwork.description}</p>
-            <p style={{ margin: '0.3rem 0', color: '#aaa' }}><strong>Created:</strong> {new Date(artwork.creationDate).toLocaleDateString()}</p>
-            <p style={{ margin: '0.3rem 0', color: '#aaa' }}><strong>Uploaded:</strong> {new Date(artwork.uploadDate).toLocaleString()}</p>
+            <p style={{ margin: '0.3rem 0', color: '#aaa' }}><strong>Created:</strong> {artwork.creationDate ? new Date(artwork.creationDate).toLocaleDateString() : 'Unknown'}</p>
+            <p style={{ margin: '0.3rem 0', color: '#aaa' }}><strong>Uploaded:</strong> {artwork.uploadDate ? new Date(artwork.uploadDate).toLocaleString() : 'Unknown'}</p>
             <p style={{ margin: '0.3rem 0', color: '#aaa' }}><strong>Active:</strong> {artwork.isActive ? 'Yes' : 'No'}</p>
-            {artwork.imgUrl && (
+            {(artwork.imgUrl ?? artwork.thumbnailUrl) && (
               <img
-                src={artwork.imgUrl}
-                alt={artwork.name}
+                src={artwork.imgUrl ?? artwork.thumbnailUrl}
+                alt={artwork.name ?? 'Artwork image'}
                 style={{ width: '100%', maxWidth: '320px', marginTop: '0.75rem', borderRadius: '0.5rem' }}
               />
             )}
