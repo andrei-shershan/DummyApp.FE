@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useMatch, useNavigate, useParams } from 'react-router-dom';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
@@ -11,6 +11,7 @@ import { useAppContext } from '../context/AppContext';
 
 function ArtworkDetailsPage() {
   const { id } = useParams<{ id: string }>();
+  const isMyWorksRoute = useMatch('/my-works/:id') != null;
   const navigate = useNavigate();
   const { selectedArtwork, loadingDetail, error, loadArtworkById, toggleArtworkActive, user } = useAppContext();
   const [actionError, setActionError] = useState<string | null>(null);
@@ -18,9 +19,9 @@ function ArtworkDetailsPage() {
 
   useEffect(() => {
     if (id) {
-      loadArtworkById(id);
+      loadArtworkById(id, !isMyWorksRoute);
     }
-  }, [id, loadArtworkById]);
+  }, [id, isMyWorksRoute, loadArtworkById]);
 
   const handleToggle = async () => {
     if (!selectedArtwork) {
@@ -40,11 +41,13 @@ function ArtworkDetailsPage() {
   };
 
   const canManageArtwork = user?.roles?.includes('Creator') || user?.roles?.includes('Admin');
+  const showArtworkActions = isMyWorksRoute && canManageArtwork;
+  const backRoute = isMyWorksRoute ? '/my-works' : '/artworks';
 
   return (
     <Container maxWidth="lg" sx={{ pt: 3, pb: 4 }}>
-      <Button variant="outlined" onClick={() => navigate('/my-works')} sx={{ mb: 3 }}>
-        Back to My Works
+      <Button variant="outlined" onClick={() => navigate(backRoute)} sx={{ mb: 3 }}>
+        Back
       </Button>
       {loadingDetail && (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
@@ -69,7 +72,7 @@ function ArtworkDetailsPage() {
             {(selectedArtwork.imgUrl ?? selectedArtwork.imgUrl) && (
               <Box component="img" src={selectedArtwork.imgUrl ?? selectedArtwork.imgUrl} alt={selectedArtwork.name} sx={{ width: '100%', maxHeight: 420, objectFit: 'cover', borderRadius: 2, mb: 3 }} />
             )}
-            {canManageArtwork && (
+            {showArtworkActions && (
               <Button variant="contained" onClick={handleToggle} disabled={actionLoading}>
                 {actionLoading ? 'Saving...' : selectedArtwork.isActive ? 'Set Inactive' : 'Set Active'}
               </Button>
