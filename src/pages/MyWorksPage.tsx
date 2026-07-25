@@ -14,7 +14,7 @@ function MyWorksPage() {
 
   useEffect(() => {
     if (creatorId) {
-      refreshArtworks(creatorId);
+      refreshArtworks(creatorId, false);
     }
   }, [refreshArtworks, creatorId]);
 

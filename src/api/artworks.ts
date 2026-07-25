@@ -1,13 +1,19 @@
 import { ArtworkDto, ArtworkCreateRequest } from '../types/api';
 import { fetchClient } from './fetchClient';
 
-export async function getArtworks(creatorId?: string): Promise<ArtworkDto[]> {
-  const query = creatorId ? `?creatorId=${encodeURIComponent(creatorId)}` : '';
-  return fetchClient<ArtworkDto[]>(`/api/artworks${query}`);
+export async function getArtworks(creatorId?: string, isActive = true): Promise<ArtworkDto[]> {
+  const params = new URLSearchParams();
+  if (creatorId) {
+    params.append('creatorId', creatorId);
+  }
+  params.append('isActive', String(isActive));
+
+  return fetchClient<ArtworkDto[]>(`/api/artworks?${params.toString()}`);
 }
 
-export async function getArtworkById(id: string): Promise<ArtworkDto> {
-  return fetchClient<ArtworkDto>(`/api/artworks/${id}`);
+export async function getArtworkById(id: string, activeOnly = true): Promise<ArtworkDto> {
+  const params = new URLSearchParams({ activeOnly: String(activeOnly) });
+  return fetchClient<ArtworkDto>(`/api/artworks/${id}?${params.toString()}`);
 }
 
 export async function toggleArtworkActive(id: string, isActive: boolean): Promise<ArtworkDto> {

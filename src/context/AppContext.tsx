@@ -15,9 +15,9 @@ interface AppContextState {
   loadingDetail: boolean;
   error: string | null;
   refreshUser: () => Promise<void>;
-  refreshArtworks: (creatorId?: string) => Promise<void>;
+  refreshArtworks: (creatorId?: string, isActive?: boolean) => Promise<void>;
   refreshAdminData: () => Promise<void>;
-  loadArtworkById: (id: string) => Promise<void>;
+  loadArtworkById: (id: string, activeOnly?: boolean) => Promise<void>;
   toggleArtworkActive: (id: string) => Promise<void>;
   toggleUserActive: (userId: string, isActive: boolean) => Promise<void>;
   createArtwork: (data: ArtworkCreateRequest) => Promise<ArtworkDto>;
@@ -47,9 +47,9 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
     }
   }, []);
 
-  const refreshArtworks = useCallback(async (creatorId?: string) => {
+  const refreshArtworks = useCallback(async (creatorId?: string, isActive = true) => {
     try {
-      const artworkList = await getArtworks(creatorId);
+      const artworkList = await getArtworks(creatorId, isActive);
       setArtworks(artworkList);
       setError(null);
     } catch (err: any) {
@@ -68,10 +68,10 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
     }
   }, []);
 
-  const loadArtworkById = useCallback(async (id: string) => {
+  const loadArtworkById = useCallback(async (id: string, activeOnly = true) => {
     setLoadingDetail(true);
     try {
-      const artwork = await getArtworkById(id);
+      const artwork = await getArtworkById(id, activeOnly);
       setSelectedArtwork(artwork);
       setError(null);
     } catch (err: any) {
