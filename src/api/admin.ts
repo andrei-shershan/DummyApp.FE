@@ -10,8 +10,11 @@ export async function getRoles(): Promise<RoleDto[]> {
 }
 
 export async function toggleUserActive(userId: string, isActive: boolean): Promise<AdminUserDto> {
+  return false;
   return fetchClient<AdminUserDto>(`/api/admin/users/${encodeURIComponent(userId)}/active`, {
     method: 'PUT',
     data: { isActive },
   });
 }
+
+// TEst

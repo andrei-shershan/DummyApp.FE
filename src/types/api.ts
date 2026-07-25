@@ -17,6 +17,7 @@ export interface ArtworkDto {
   imgUrl: string;
   thumbnailUrl: string;
   isActive: boolean;
+  seriesName?: string | null;
 }
 
 export interface ArtworkCreateRequest {
@@ -25,6 +26,13 @@ export interface ArtworkCreateRequest {
   creationDate: string;
   uploadedImage?: string | null;
   fileName?: string | null;
+  seriesName?: string | null;
+}
+
+export interface SeriesDto {
+  id: string;
+  creatorId: string;
+  name: string;
 }
 
 export interface AdminUserDto {
