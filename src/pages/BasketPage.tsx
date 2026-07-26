@@ -13,13 +13,19 @@ import { useAppContext } from '../context/AppContext';
 import { updateBasketItemQuantity } from '../api/basket';
 
 function BasketPage() {
-  const { basketItems, basketLoading, basketError, refreshBasketItems } = useAppContext();
+  const { basketItems, basketLoading, basketError, basketStatus, refreshBasketItems, payBasket } = useAppContext();
   const [actionError, setActionError] = useState<string | null>(null);
   const [updatingItemIds, setUpdatingItemIds] = useState<Record<string, boolean>>({});
+  const [paying, setPaying] = useState(false);
 
+  const isEditable = basketStatus === null || basketStatus === 'Active';
   const hasItems = basketItems.length > 0;
 
   const handleQuantityChange = async (artworkId: string, quantityDelta: number) => {
+    if (!isEditable) {
+      return;
+    }
+
     setActionError(null);
     setUpdatingItemIds(prev => ({ ...prev, [artworkId]: true }));
 
@@ -33,12 +39,27 @@ function BasketPage() {
     }
   };
 
+  const totalItems = basketItems.reduce((sum, item) => sum + item.quantity, 0);
+
   return (
     <Container maxWidth="lg" sx={{ pt: 3, pb: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4">Basket</Typography>
-        <Typography variant="body1">Total items: {basketItems.reduce((sum, item) => sum + item.quantity, 0)}</Typography>
+        <Typography variant="body1">Total items: {totalItems}</Typography>
       </Box>
+
+      {basketStatus && (
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="subtitle1">Status: {basketStatus}</Typography>
+        </Box>
+      )}
+
+      {!basketLoading && !basketError && hasItems && (
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="h6">Order summary</Typography>
+          <Typography>{totalItems} item(s) ready for payment.</Typography>
+        </Box>
+      )}
 
       {basketLoading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
@@ -61,6 +82,29 @@ function BasketPage() {
       )}
 
       {!basketLoading && !basketError && hasItems && (
+        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
+          <Button
+            variant="contained"
+            onClick={async () => {
+              setActionError(null);
+              setPaying(true);
+
+              try {
+                await payBasket();
+              } catch (err: any) {
+                setActionError(err?.message ?? 'Unable to pay order.');
+              } finally {
+                setPaying(false);
+              }
+            }}
+            disabled={!isEditable || basketLoading || paying}
+          >
+            Pay Order
+          </Button>
+        </Box>
+      )}
+
+      {!basketLoading && !basketError && hasItems && (
         <List>
           {basketItems.map(item => (
             <React.Fragment key={`${item.orderId}-${item.artworkId}`}>
@@ -79,7 +123,7 @@ function BasketPage() {
                     <Button
                       size="small"
                       variant="outlined"
-                      disabled={basketLoading || updatingItemIds[item.artworkId]}
+                      disabled={!isEditable || basketLoading || updatingItemIds[item.artworkId]}
                       onClick={() => handleQuantityChange(item.artworkId, -1)}
                     >
                       -
@@ -88,7 +132,7 @@ function BasketPage() {
                     <Button
                       size="small"
                       variant="outlined"
-                      disabled={basketLoading || updatingItemIds[item.artworkId]}
+                      disabled={!isEditable || basketLoading || updatingItemIds[item.artworkId]}
                       onClick={() => handleQuantityChange(item.artworkId, 1)}
                     >
                       +

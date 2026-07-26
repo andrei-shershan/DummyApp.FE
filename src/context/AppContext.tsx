@@ -4,7 +4,7 @@ import { getCurrentUser } from '../api/auth';
 import { createArtwork as createArtworkApi, getArtworkById, getArtworks, toggleArtworkActive as toggleArtworkActiveApi } from '../api/artworks';
 import { getAdminUsers, getRoles, toggleUserActive as toggleUserActiveApi } from '../api/admin';
 import { sendInvite as sendInviteApi } from '../api/invite';
-import { getBasketItems } from '../api/basket';
+import { getBasketSummary, payBasket as payBasketApi } from '../api/basket';
 
 interface AppContextState {
   user: CurrentUser | null;
@@ -13,6 +13,7 @@ interface AppContextState {
   adminUsers: AdminUserDto[];
   adminRoles: RoleDto[];
   basketItems: BasketItemDto[];
+  basketStatus: string | null;
   basketCount: number;
   basketLoading: boolean;
   basketError: string | null;
@@ -23,6 +24,7 @@ interface AppContextState {
   refreshArtworks: (creatorId?: string, isActive?: boolean) => Promise<void>;
   refreshAdminData: () => Promise<void>;
   refreshBasketItems: () => Promise<void>;
+  payBasket: () => Promise<void>;
   loadArtworkById: (id: string, activeOnly?: boolean) => Promise<void>;
   toggleArtworkActive: (id: string) => Promise<void>;
   toggleUserActive: (userId: string, isActive: boolean) => Promise<void>;
@@ -40,6 +42,7 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
   const [adminUsers, setAdminUsers] = useState<AdminUserDto[]>([]);
   const [adminRoles, setAdminRoles] = useState<RoleDto[]>([]);
   const [basketItems, setBasketItems] = useState<BasketItemDto[]>([]);
+  const [basketStatus, setBasketStatus] = useState<string | null>(null);
   const [basketCount, setBasketCount] = useState(0);
   const [basketLoading, setBasketLoading] = useState(false);
   const [basketError, setBasketError] = useState<string | null>(null);
@@ -114,18 +117,37 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
     setBasketError(null);
 
     try {
-      const items = await getBasketItems();
-      setBasketItems(items);
-      setBasketCount(items.reduce((sum, item) => sum + item.quantity, 0));
+      const summary = await getBasketSummary();
+      if (summary === null) {
+        setBasketItems([]);
+        setBasketStatus(null);
+        setBasketCount(0);
+      } else {
+        setBasketItems(summary.items);
+        setBasketStatus(summary.status);
+        setBasketCount(summary.items.reduce((sum, item) => sum + item.quantity, 0));
+      }
       setBasketError(null);
     } catch (err: any) {
       setBasketItems([]);
+      setBasketStatus(null);
       setBasketCount(0);
-      setBasketError(err?.message ?? 'Unable to load basket items.');
+      setBasketError(err?.message ?? 'Unable to load basket summary.');
     } finally {
       setBasketLoading(false);
     }
   }, []);
+
+  const payBasket = useCallback(async () => {
+    try {
+      await payBasketApi();
+      await refreshBasketItems();
+      setError(null);
+    } catch (err: any) {
+      setError(err?.message ?? 'Unable to pay for basket.');
+      throw err;
+    }
+  }, [refreshBasketItems]);
 
   const createArtwork = useCallback(async (data: import('../types/api').ArtworkCreateRequest) => {
     try {
@@ -184,6 +206,11 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
         selectedArtwork,
         adminUsers,
         adminRoles,
+        basketItems,
+        basketStatus,
+        basketCount,
+        basketLoading,
+        basketError,
         loading,
         loadingDetail,
         error,
@@ -191,10 +218,7 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
         refreshArtworks,
         refreshAdminData,
         refreshBasketItems,
-        basketItems,
-        basketCount,
-        basketLoading,
-        basketError,
+        payBasket,
         loadArtworkById,
         toggleArtworkActive,
         toggleUserActive,

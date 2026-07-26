@@ -45,6 +45,11 @@ export interface BasketItemDto {
   quantity: number;
 }
 
+export interface BasketSummaryDto {
+  items: BasketItemDto[];
+  status: string;
+}
+
 export interface AdminUserDto {
   id: string;
   email: string;
