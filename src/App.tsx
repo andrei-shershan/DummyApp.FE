@@ -21,6 +21,7 @@ import HomePage from './pages/HomePage';
 import ArtworksPage from './pages/ArtworksPage';
 import MyWorksPage from './pages/MyWorksPage';
 import ArtworkDetailsPage from './pages/ArtworkDetailsPage';
+import BasketPage from './pages/BasketPage';
 import AdminPage from './pages/AdminPage';
 import InviteRegisterRedirectPage from './pages/InviteRegisterRedirectPage';
 
@@ -57,6 +58,10 @@ function AppContent() {
     {
       label: 'Artworks',
       onClick: () => navigate('/artworks'),
+    },
+    {
+      label: 'Basket',
+      onClick: () => navigate('/basket'),
     },
   ];
 
@@ -164,6 +169,7 @@ function App() {
         <Route path="artworks/:id" element={<ArtworkDetailsPage />} />
         <Route path="my-works" element={<MyWorksPage />} />
         <Route path="my-works/:id" element={<ArtworkDetailsPage />} />
+        <Route path="basket" element={<BasketPage />} />
         <Route path="admin" element={<AdminPage />} />
         <Route path="register/*" element={<InviteRegisterRedirectPage />} />
       </Route>

@@ -8,6 +8,7 @@ import CardContent from '@mui/material/CardContent';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useAppContext } from '../context/AppContext';
+import { addArtworkToBasket } from '../api/basket';
 
 function ArtworkDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -16,6 +17,8 @@ function ArtworkDetailsPage() {
   const { selectedArtwork, loadingDetail, error, loadArtworkById, toggleArtworkActive, user } = useAppContext();
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [basketError, setBasketError] = useState<string | null>(null);
+  const [basketLoading, setBasketLoading] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -43,6 +46,23 @@ function ArtworkDetailsPage() {
   const canManageArtwork = user?.roles?.includes('Creator') || user?.roles?.includes('Admin');
   const showArtworkActions = isMyWorksRoute && canManageArtwork;
   const backRoute = isMyWorksRoute ? '/my-works' : '/artworks';
+
+  const handleAddToBasket = async () => {
+    if (!selectedArtwork) {
+      return;
+    }
+
+    setBasketLoading(true);
+    setBasketError(null);
+
+    try {
+      await addArtworkToBasket(selectedArtwork.id);
+    } catch (err: any) {
+      setBasketError(err?.message ?? 'Unable to add artwork to basket.');
+    } finally {
+      setBasketLoading(false);
+    }
+  };
 
   return (
     <Container maxWidth="lg" sx={{ pt: 3, pb: 4 }}>
@@ -72,12 +92,21 @@ function ArtworkDetailsPage() {
             {(selectedArtwork.imgUrl ?? selectedArtwork.imgUrl) && (
               <Box component="img" src={selectedArtwork.imgUrl ?? selectedArtwork.imgUrl} alt={selectedArtwork.name} sx={{ width: '100%', maxHeight: 420, objectFit: 'cover', borderRadius: 2, mb: 3 }} />
             )}
-            {showArtworkActions && (
-              <Button variant="contained" onClick={handleToggle} disabled={actionLoading}>
-                {actionLoading ? 'Saving...' : selectedArtwork.isActive ? 'Set Inactive' : 'Set Active'}
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
+              <Button variant="contained" onClick={handleAddToBasket} disabled={actionLoading || basketLoading}>
+                {basketLoading ? 'Adding...' : 'Add to basket'}
               </Button>
+              {showArtworkActions && (
+                <Button variant="contained" onClick={handleToggle} disabled={actionLoading || basketLoading}>
+                  {actionLoading ? 'Saving...' : selectedArtwork.isActive ? 'Set Inactive' : 'Set Active'}
+                </Button>
+              )}
+            </Box>
+            {(actionError || basketError) && (
+              <Typography color="error" sx={{ mt: 2 }}>
+                {basketError ?? actionError}
+              </Typography>
             )}
-            {actionError && <Typography color="error" sx={{ mt: 2 }}>{actionError}</Typography>}
           </CardContent>
         </Card>
       )}
