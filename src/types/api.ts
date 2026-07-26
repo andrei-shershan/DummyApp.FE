@@ -35,6 +35,16 @@ export interface SeriesDto {
   name: string;
 }
 
+export interface BasketItemDto {
+  orderId: string;
+  artworkId: string;
+  name: string;
+  description: string;
+  imgUrl: string;
+  thumbnailUrl: string;
+  quantity: number;
+}
+
 export interface AdminUserDto {
   id: string;
   email: string;
