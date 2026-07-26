@@ -14,7 +14,7 @@ function ArtworkDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const isMyWorksRoute = useMatch('/my-works/:id') != null;
   const navigate = useNavigate();
-  const { selectedArtwork, loadingDetail, error, loadArtworkById, toggleArtworkActive, user } = useAppContext();
+  const { selectedArtwork, loadingDetail, error, loadArtworkById, toggleArtworkActive, user, isArtworkInBasket, refreshBasketItems } = useAppContext();
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [basketError, setBasketError] = useState<string | null>(null);
@@ -57,6 +57,7 @@ function ArtworkDetailsPage() {
 
     try {
       await addArtworkToBasket(selectedArtwork.id);
+      await refreshBasketItems();
     } catch (err: any) {
       setBasketError(err?.message ?? 'Unable to add artwork to basket.');
     } finally {
@@ -93,9 +94,15 @@ function ArtworkDetailsPage() {
               <Box component="img" src={selectedArtwork.imgUrl ?? selectedArtwork.imgUrl} alt={selectedArtwork.name} sx={{ width: '100%', maxHeight: 420, objectFit: 'cover', borderRadius: 2, mb: 3 }} />
             )}
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
-              <Button variant="contained" onClick={handleAddToBasket} disabled={actionLoading || basketLoading}>
-                {basketLoading ? 'Adding...' : 'Add to basket'}
-              </Button>
+              {isArtworkInBasket(selectedArtwork.id) ? (
+                <Button variant="contained" color="secondary" onClick={() => navigate('/basket')}>
+                  View basket
+                </Button>
+              ) : (
+                <Button variant="contained" onClick={handleAddToBasket} disabled={actionLoading || basketLoading}>
+                  {basketLoading ? 'Adding...' : 'Add to basket'}
+                </Button>
+              )}
               {showArtworkActions && (
                 <Button variant="contained" onClick={handleToggle} disabled={actionLoading || basketLoading}>
                   {actionLoading ? 'Saving...' : selectedArtwork.isActive ? 'Set Inactive' : 'Set Active'}

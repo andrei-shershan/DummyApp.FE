@@ -35,7 +35,7 @@ interface NavItem {
 function AppContent() {
   const theme = useTheme();
   const navigate = useNavigate();
-  const { user } = useAppContext();
+  const { user, basketCount } = useAppContext();
   const [mobileOpen, setMobileOpen] = useState(false);
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -60,7 +60,7 @@ function AppContent() {
       onClick: () => navigate('/artworks'),
     },
     {
-      label: 'Basket',
+      label: `Basket${basketCount > 0 ? ` (${basketCount})` : ''}`,
       onClick: () => navigate('/basket'),
     },
   ];
