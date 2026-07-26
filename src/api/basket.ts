@@ -1,6 +1,6 @@
 import { BFF_HOST } from '../config';
 import { fetchClient } from './fetchClient';
-import { BasketItemDto, BasketSummaryDto } from '../types/api';
+import { BasketSummaryDto } from '../types/api';
 
 export async function addArtworkToBasket(artworkId: string): Promise<void> {
   await updateBasketItemQuantity(artworkId, 1);

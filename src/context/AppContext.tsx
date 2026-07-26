@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { CurrentUser, ArtworkDto, AdminUserDto, ArtworkCreateRequest, RoleDto, BasketItemDto, BasketSummaryDto } from '../types/api';
+import { CurrentUser, ArtworkDto, AdminUserDto, ArtworkCreateRequest, RoleDto, BasketItemDto } from '../types/api';
 import { getCurrentUser } from '../api/auth';
 import { createArtwork as createArtworkApi, getArtworkById, getArtworks, toggleArtworkActive as toggleArtworkActiveApi } from '../api/artworks';
 import { getAdminUsers, getRoles, toggleUserActive as toggleUserActiveApi } from '../api/admin';
