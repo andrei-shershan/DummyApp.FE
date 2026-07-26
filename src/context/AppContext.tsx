@@ -1,9 +1,10 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { CurrentUser, ArtworkDto, AdminUserDto, ArtworkCreateRequest, RoleDto } from '../types/api';
+import { CurrentUser, ArtworkDto, AdminUserDto, ArtworkCreateRequest, RoleDto, BasketItemDto } from '../types/api';
 import { getCurrentUser } from '../api/auth';
 import { createArtwork as createArtworkApi, getArtworkById, getArtworks, toggleArtworkActive as toggleArtworkActiveApi } from '../api/artworks';
 import { getAdminUsers, getRoles, toggleUserActive as toggleUserActiveApi } from '../api/admin';
 import { sendInvite as sendInviteApi } from '../api/invite';
+import { getBasketItems } from '../api/basket';
 
 interface AppContextState {
   user: CurrentUser | null;
@@ -11,16 +12,22 @@ interface AppContextState {
   selectedArtwork: ArtworkDto | null;
   adminUsers: AdminUserDto[];
   adminRoles: RoleDto[];
+  basketItems: BasketItemDto[];
+  basketCount: number;
+  basketLoading: boolean;
+  basketError: string | null;
   loading: boolean;
   loadingDetail: boolean;
   error: string | null;
   refreshUser: () => Promise<void>;
   refreshArtworks: (creatorId?: string, isActive?: boolean) => Promise<void>;
   refreshAdminData: () => Promise<void>;
+  refreshBasketItems: () => Promise<void>;
   loadArtworkById: (id: string, activeOnly?: boolean) => Promise<void>;
   toggleArtworkActive: (id: string) => Promise<void>;
   toggleUserActive: (userId: string, isActive: boolean) => Promise<void>;
   createArtwork: (data: ArtworkCreateRequest) => Promise<ArtworkDto>;
+  isArtworkInBasket: (artworkId: string) => boolean;
   sendInvite: (email: string) => Promise<void>;
 }
 
@@ -32,6 +39,10 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
   const [selectedArtwork, setSelectedArtwork] = useState<ArtworkDto | null>(null);
   const [adminUsers, setAdminUsers] = useState<AdminUserDto[]>([]);
   const [adminRoles, setAdminRoles] = useState<RoleDto[]>([]);
+  const [basketItems, setBasketItems] = useState<BasketItemDto[]>([]);
+  const [basketCount, setBasketCount] = useState(0);
+  const [basketLoading, setBasketLoading] = useState(false);
+  const [basketError, setBasketError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -98,6 +109,24 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
     }
   }, [selectedArtwork]);
 
+  const refreshBasketItems = useCallback(async () => {
+    setBasketLoading(true);
+    setBasketError(null);
+
+    try {
+      const items = await getBasketItems();
+      setBasketItems(items);
+      setBasketCount(items.reduce((sum, item) => sum + item.quantity, 0));
+      setBasketError(null);
+    } catch (err: any) {
+      setBasketItems([]);
+      setBasketCount(0);
+      setBasketError(err?.message ?? 'Unable to load basket items.');
+    } finally {
+      setBasketLoading(false);
+    }
+  }, []);
+
   const createArtwork = useCallback(async (data: import('../types/api').ArtworkCreateRequest) => {
     try {
       const artwork = await createArtworkApi(data);
@@ -121,6 +150,10 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
     }
   }, [refreshAdminData]);
 
+  const isArtworkInBasket = useCallback((artworkId: string) => {
+    return basketItems.some(item => item.artworkId === artworkId);
+  }, [basketItems]);
+
   const sendInvite = useCallback(async (email: string) => {
     try {
       await sendInviteApi(email);
@@ -134,14 +167,14 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     async function initialize() {
       setLoading(true);
-      await Promise.all([refreshUser(), refreshArtworks()]);
+      await Promise.all([refreshUser(), refreshArtworks(), refreshBasketItems()]);
       setLoading(false);
     }
 
     initialize().catch(() => {
       setLoading(false);
     });
-  }, [refreshArtworks, refreshUser]);
+  }, [refreshArtworks, refreshUser, refreshBasketItems]);
 
   return (
     <AppContext.Provider
@@ -157,10 +190,16 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
         refreshUser,
         refreshArtworks,
         refreshAdminData,
+        refreshBasketItems,
+        basketItems,
+        basketCount,
+        basketLoading,
+        basketError,
         loadArtworkById,
         toggleArtworkActive,
         toggleUserActive,
         createArtwork,
+        isArtworkInBasket,
         sendInvite,
       }}
     >
