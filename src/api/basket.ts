@@ -1,6 +1,6 @@
 import { BFF_HOST } from '../config';
 import { fetchClient } from './fetchClient';
-import { BasketItemDto } from '../types/api';
+import { BasketItemDto, BasketSummaryDto } from '../types/api';
 
 export async function addArtworkToBasket(artworkId: string): Promise<void> {
   await updateBasketItemQuantity(artworkId, 1);
@@ -13,20 +13,26 @@ export async function updateBasketItemQuantity(artworkId: string, quantity: numb
   });
 }
 
-export async function getBasketItems(): Promise<BasketItemDto[]> {
-  const url = `${BFF_HOST}/api/basket/items`;
+export async function getBasketSummary(): Promise<BasketSummaryDto | null> {
+  const url = `${BFF_HOST}/api/basket`;
   const response = await fetch(url, {
     credentials: 'include',
   });
 
   if (response.status === 404) {
-    return [];
+    return null;
   }
 
   if (!response.ok) {
     const message = await response.text();
-    throw new Error(message || 'Unable to load basket items.');
+    throw new Error(message || 'Unable to load basket summary.');
   }
 
-  return (await response.json()) as BasketItemDto[];
+  return (await response.json()) as BasketSummaryDto;
+}
+
+export async function payBasket(): Promise<void> {
+  await fetchClient<void>('/api/basket/pay', {
+    method: 'POST',
+  });
 }
