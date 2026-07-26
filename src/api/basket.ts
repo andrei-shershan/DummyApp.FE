@@ -3,9 +3,13 @@ import { fetchClient } from './fetchClient';
 import { BasketItemDto } from '../types/api';
 
 export async function addArtworkToBasket(artworkId: string): Promise<void> {
+  await updateBasketItemQuantity(artworkId, 1);
+}
+
+export async function updateBasketItemQuantity(artworkId: string, quantity: number): Promise<void> {
   await fetchClient<void>('/api/basket/items', {
     method: 'POST',
-    data: { artworkId },
+    data: { artworkId, quantity },
   });
 }
 
