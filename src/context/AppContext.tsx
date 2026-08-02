@@ -4,7 +4,7 @@ import { getCurrentUser } from '../api/auth';
 import { createArtwork as createArtworkApi, getArtworkById, getArtworks, toggleArtworkActive as toggleArtworkActiveApi } from '../api/artworks';
 import { getAdminUsers, getRoles, getPrintSizes, toggleUserActive as toggleUserActiveApi } from '../api/admin';
 import { sendInvite as sendInviteApi } from '../api/invite';
-import { getBasketSummary, payBasket as payBasketApi } from '../api/basket';
+import { getBasketSummary, payBasket as payBasketApi, updateBasketItemQuantity as updateBasketItemQuantityApi } from '../api/basket';
 
 interface AppContextState {
   user: CurrentUser | null;
@@ -26,6 +26,7 @@ interface AppContextState {
   refreshAdminData: () => Promise<void>;
   refreshBasketItems: () => Promise<void>;
   payBasket: () => Promise<void>;
+  updateBasketItemQuantity: (artworkId: string, quantity: number, printSizeId?: number, priceId?: number) => Promise<void>;
   loadArtworkById: (id: string, activeOnly?: boolean) => Promise<void>;
   toggleArtworkActive: (id: string) => Promise<void>;
   toggleUserActive: (userId: string, isActive: boolean) => Promise<void>;
@@ -152,6 +153,17 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
     }
   }, [refreshBasketItems]);
 
+  const updateBasketItemQuantity = useCallback(async (artworkId: string, quantity: number, printSizeId?: number, priceId?: number) => {
+    try {
+      await updateBasketItemQuantityApi(artworkId, quantity, printSizeId, priceId);
+      await refreshBasketItems();
+      setError(null);
+    } catch (err: any) {
+      setError(err?.message ?? 'Unable to update basket item.');
+      throw err;
+    }
+  }, [refreshBasketItems]);
+
   const createArtwork = useCallback(async (data: import('../types/api').ArtworkCreateRequest) => {
     try {
       const artwork = await createArtworkApi(data);
@@ -223,6 +235,7 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
         refreshAdminData,
         refreshBasketItems,
         payBasket,
+        updateBasketItemQuantity,
         loadArtworkById,
         toggleArtworkActive,
         toggleUserActive,
