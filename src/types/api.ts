@@ -43,6 +43,10 @@ export interface BasketItemDto {
   imgUrl: string;
   thumbnailUrl: string;
   quantity: number;
+  printSizeId?: number;
+  printSizeName?: string;
+  priceId?: number;
+  priceValue?: number;
 }
 
 export interface BasketSummaryDto {
