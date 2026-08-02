@@ -1,8 +1,8 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { CurrentUser, ArtworkDto, AdminUserDto, ArtworkCreateRequest, RoleDto, BasketItemDto } from '../types/api';
+import { CurrentUser, ArtworkDto, AdminUserDto, ArtworkCreateRequest, RoleDto, BasketItemDto, PrintSizeDto } from '../types/api';
 import { getCurrentUser } from '../api/auth';
 import { createArtwork as createArtworkApi, getArtworkById, getArtworks, toggleArtworkActive as toggleArtworkActiveApi } from '../api/artworks';
-import { getAdminUsers, getRoles, toggleUserActive as toggleUserActiveApi } from '../api/admin';
+import { getAdminUsers, getRoles, getPrintSizes, toggleUserActive as toggleUserActiveApi } from '../api/admin';
 import { sendInvite as sendInviteApi } from '../api/invite';
 import { getBasketSummary, payBasket as payBasketApi } from '../api/basket';
 
@@ -12,6 +12,7 @@ interface AppContextState {
   selectedArtwork: ArtworkDto | null;
   adminUsers: AdminUserDto[];
   adminRoles: RoleDto[];
+  printSizes: PrintSizeDto[];
   basketItems: BasketItemDto[];
   basketStatus: string | null;
   basketCount: number;
@@ -41,6 +42,7 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
   const [selectedArtwork, setSelectedArtwork] = useState<ArtworkDto | null>(null);
   const [adminUsers, setAdminUsers] = useState<AdminUserDto[]>([]);
   const [adminRoles, setAdminRoles] = useState<RoleDto[]>([]);
+  const [printSizes, setPrintSizes] = useState<PrintSizeDto[]>([]);
   const [basketItems, setBasketItems] = useState<BasketItemDto[]>([]);
   const [basketStatus, setBasketStatus] = useState<string | null>(null);
   const [basketCount, setBasketCount] = useState(0);
@@ -73,9 +75,10 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
 
   const refreshAdminData = useCallback(async () => {
     try {
-      const [users, roles] = await Promise.all([getAdminUsers(), getRoles()]);
+      const [users, roles, sizes] = await Promise.all([getAdminUsers(), getRoles(), getPrintSizes()]);
       setAdminUsers(users);
       setAdminRoles(roles);
+      setPrintSizes(sizes);
       setError(null);
     } catch (err: any) {
       setError(err?.message ?? 'Unable to load admin data.');
@@ -206,6 +209,7 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
         selectedArtwork,
         adminUsers,
         adminRoles,
+        printSizes,
         basketItems,
         basketStatus,
         basketCount,

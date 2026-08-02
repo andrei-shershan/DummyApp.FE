@@ -11,7 +11,7 @@ import { useAppContext } from '../context/AppContext';
 import InviteCreatorForm from '../components/InviteCreatorForm';
 
 function AdminPage() {
-  const { adminUsers, adminRoles, loading, error, refreshAdminData, toggleUserActive } = useAppContext();
+  const { adminUsers, adminRoles, printSizes, loading, error, refreshAdminData, toggleUserActive } = useAppContext();
 
   useEffect(() => {
     refreshAdminData();
@@ -71,6 +71,34 @@ function AdminPage() {
                 <Typography variant="body2" color="text.secondary">
                   ID: {role.id}
                 </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+
+      <Divider sx={{ my: 4 }} />
+
+      <Typography variant="h5" gutterBottom>
+        Print Sizes and Prices
+      </Typography>
+      <Grid container spacing={2}>
+        {printSizes.map(printSize => (
+          <Grid item xs={12} key={printSize.id}>
+            <Card>
+              <CardContent>
+                <Typography variant="subtitle1">{printSize.name}</Typography>
+                {printSize.prices.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary">
+                    No prices available.
+                  </Typography>
+                ) : (
+                  printSize.prices.map(price => (
+                    <Typography key={price.id} variant="body2" color="text.secondary">
+                      Price: {price.value.toFixed(2)} | Updated: {new Date(price.updatedAt).toLocaleString()}
+                    </Typography>
+                  ))
+                )}
               </CardContent>
             </Card>
           </Grid>

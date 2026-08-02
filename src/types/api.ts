@@ -50,6 +50,20 @@ export interface BasketSummaryDto {
   status: string;
 }
 
+export interface PriceDto {
+  id: number;
+  printSizeId: number;
+  value: number;
+  updatedAt: string;
+  isDeleted: boolean;
+}
+
+export interface PrintSizeDto {
+  id: number;
+  name: string;
+  prices: PriceDto[];
+}
+
 export interface AdminUserDto {
   id: string;
   email: string;

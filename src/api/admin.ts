@@ -1,4 +1,4 @@
-import { AdminUserDto, RoleDto } from '../types/api';
+import { AdminUserDto, RoleDto, PrintSizeDto } from '../types/api';
 import { fetchClient } from './fetchClient';
 
 export async function getAdminUsers(): Promise<AdminUserDto[]> {
@@ -7,6 +7,10 @@ export async function getAdminUsers(): Promise<AdminUserDto[]> {
 
 export async function getRoles(): Promise<RoleDto[]> {
   return fetchClient<RoleDto[]>('/api/admin/roles');
+}
+
+export async function getPrintSizes(): Promise<PrintSizeDto[]> {
+  return fetchClient<PrintSizeDto[]>('/api/admin/print-sizes');
 }
 
 export async function toggleUserActive(userId: string, isActive: boolean): Promise<AdminUserDto> {
