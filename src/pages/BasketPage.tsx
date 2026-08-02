@@ -18,14 +18,17 @@ import { getBasketPrintSizes } from '../api/basket';
 import { PrintSizeDto } from '../types/api';
 
 function BasketPage() {
-  const { basketItems, basketLoading, basketError, basketStatus, refreshBasketItems, payBasket, updateBasketItemQuantity } = useAppContext();
+  const { basketItems, basketLoading, basketError, basketStatus, refreshBasketItems, payBasket, activateBasket, updateBasketItemQuantity } = useAppContext();
   const [actionError, setActionError] = useState<string | null>(null);
   const [updatingItemIds, setUpdatingItemIds] = useState<Record<string, boolean>>({});
   const [paying, setPaying] = useState(false);
+  const [activating, setActivating] = useState(false);
   const [printSizes, setPrintSizes] = useState<PrintSizeDto[]>([]);
 
-  const isEditable = basketStatus === null || basketStatus === 'Active' || basketStatus === 'Processing';
+  const isEditable = basketStatus === null || basketStatus === 'Active';
+  const isSummaryMode = basketStatus === 'Processing';
   const hasItems = basketItems.length > 0;
+  const isBasketReadyForReview = hasItems && basketItems.every(item => item.printSizeId != null && item.priceId != null);
 
   const handleItemUpdate = async (artworkId: string, quantity: number, printSizeId?: number, priceId?: number) => {
     if (!isEditable) {
@@ -77,7 +80,14 @@ function BasketPage() {
         </Box>
       )}
 
-      {!basketLoading && !basketError && hasItems && (
+      {isSummaryMode && (
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="h6">Step 2 - View Summary</Typography>
+          <Typography>Review the basket contents before editing again.</Typography>
+        </Box>
+      )}
+
+      {!basketLoading && !basketError && !isSummaryMode && hasItems && (
         <Box sx={{ mb: 2 }}>
           <Typography variant="h6">Order summary</Typography>
           <Typography>{totalItems} item(s) ready for payment.</Typography>
@@ -98,6 +108,12 @@ function BasketPage() {
         <Typography>Your basket is empty. Add an artwork to create a basket.</Typography>
       )}
 
+      {!basketLoading && !basketError && hasItems && !isSummaryMode && !isBasketReadyForReview && (
+        <Typography color="text.secondary" sx={{ mb: 2 }}>
+          All items must have a print size and a price before you can review details.
+        </Typography>
+      )}
+
       {!basketLoading && !basketError && actionError && (
         <Typography color="error" sx={{ mb: 2 }}>
           {actionError}
@@ -105,25 +121,46 @@ function BasketPage() {
       )}
 
       {!basketLoading && !basketError && hasItems && (
-        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
-          <Button
-            variant="contained"
-            onClick={async () => {
-              setActionError(null);
-              setPaying(true);
+        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+          {isSummaryMode ? (
+            <Button
+              variant="contained"
+              onClick={async () => {
+                setActionError(null);
+                setActivating(true);
 
-              try {
-                await payBasket();
-              } catch (err: any) {
-                setActionError(err?.message ?? 'Unable to review details.');
-              } finally {
-                setPaying(false);
-              }
-            }}
-            disabled={!isEditable || basketLoading || paying}
-          >
-            Review Details
-          </Button>
+                try {
+                  await activateBasket();
+                } catch (err: any) {
+                  setActionError(err?.message ?? 'Unable to edit basket.');
+                } finally {
+                  setActivating(false);
+                }
+              }}
+              disabled={basketLoading || activating}
+            >
+              Edit basket
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              onClick={async () => {
+                setActionError(null);
+                setPaying(true);
+
+                try {
+                  await payBasket();
+                } catch (err: any) {
+                  setActionError(err?.message ?? 'Unable to review details.');
+                } finally {
+                  setPaying(false);
+                }
+              }}
+              disabled={!isEditable || basketLoading || paying || !isBasketReadyForReview}
+            >
+              Review Details
+            </Button>
+          )}
         </Box>
       )}
 
@@ -148,6 +185,7 @@ function BasketPage() {
                         {item.description}
                       </Typography>
                     </Box>
+                    {!isSummaryMode && (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Button
                         size="small"
@@ -167,53 +205,67 @@ function BasketPage() {
                         +
                       </Button>
                     </Box>
+                  )}
                   </Box>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2 }}>
-                    <FormControl sx={{ minWidth: 180 }} size="small">
-                      <InputLabel id={`print-size-label-${item.artworkId}`}>Print Size</InputLabel>
-                      <Select
-                        labelId={`print-size-label-${item.artworkId}`}
-                        value={currentPrintSizeId ?? ''}
-                        label="Print Size"
-                        onChange={async event => {
-                          const newPrintSizeId = Number(event.target.value);
-                          const selectedSize = printSizeOptions.find(size => size.id === newPrintSizeId);
-                          const newPriceId = selectedSize?.prices[0]?.id;
+                    {isSummaryMode ? (
+                      <Box sx={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 2 }}>
+                        <Typography>Size: {item.printSizeName ?? selectedPrintSize?.name ?? 'N/A'}</Typography>
+                        <Typography>Quantity: {item.quantity}</Typography>
+                        <Typography>Price: {item.priceValue != null ? item.priceValue.toFixed(2) : '-'}</Typography>
+                        <Typography>
+                          Total: {item.priceValue != null ? (item.priceValue * item.quantity).toFixed(2) : '-'}
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <>
+                        <FormControl sx={{ minWidth: 180 }} size="small">
+                          <InputLabel id={`print-size-label-${item.artworkId}`}>Print Size</InputLabel>
+                          <Select
+                            labelId={`print-size-label-${item.artworkId}`}
+                            value={currentPrintSizeId ?? ''}
+                            label="Print Size"
+                            onChange={async event => {
+                              const newPrintSizeId = Number(event.target.value);
+                              const selectedSize = printSizeOptions.find(size => size.id === newPrintSizeId);
+                              const newPriceId = selectedSize?.prices[0]?.id;
 
-                          await handleItemUpdate(item.artworkId, item.quantity, newPrintSizeId, newPriceId);
-                        }}
-                        disabled={!isEditable || basketLoading || updatingItemIds[item.artworkId]}
-                      >
-                        {printSizeOptions.map(size => (
-                          <MenuItem key={size.id} value={size.id}>
-                            {size.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                    <FormControl sx={{ minWidth: 180 }} size="small">
-                      <InputLabel id={`price-label-${item.artworkId}`}>Price</InputLabel>
-                      <Select
-                        labelId={`price-label-${item.artworkId}`}
-                        value={currentPriceId ?? ''}
-                        label="Price"
-                        onChange={async event => {
-                          const newPriceId = Number(event.target.value);
-                          await handleItemUpdate(item.artworkId, item.quantity, selectedPrintSize?.id, newPriceId);
-                        }}
-                        disabled={!isEditable || basketLoading || updatingItemIds[item.artworkId] || itemPrices.length === 0}
-                      >
-                        {itemPrices.map(price => (
-                          <MenuItem key={price.id} value={price.id}>
-                            {price.value.toFixed(2)}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                    {item.priceValue != null && (
-                      <Typography sx={{ alignSelf: 'center' }}>
-                        Selected price: {item.priceValue.toFixed(2)}
-                      </Typography>
+                              await handleItemUpdate(item.artworkId, item.quantity, newPrintSizeId, newPriceId);
+                            }}
+                            disabled={!isEditable || basketLoading || updatingItemIds[item.artworkId]}
+                          >
+                            {printSizeOptions.map(size => (
+                              <MenuItem key={size.id} value={size.id}>
+                                {size.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                        <FormControl sx={{ minWidth: 180 }} size="small">
+                          <InputLabel id={`price-label-${item.artworkId}`}>Price</InputLabel>
+                          <Select
+                            labelId={`price-label-${item.artworkId}`}
+                            value={currentPriceId ?? ''}
+                            label="Price"
+                            onChange={async event => {
+                              const newPriceId = Number(event.target.value);
+                              await handleItemUpdate(item.artworkId, item.quantity, selectedPrintSize?.id, newPriceId);
+                            }}
+                            disabled={!isEditable || basketLoading || updatingItemIds[item.artworkId] || itemPrices.length === 0}
+                          >
+                            {itemPrices.map(price => (
+                              <MenuItem key={price.id} value={price.id}>
+                                {price.value.toFixed(2)}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                        {item.priceValue != null && (
+                          <Typography sx={{ alignSelf: 'center' }}>
+                            Selected price: {item.priceValue.toFixed(2)}
+                          </Typography>
+                        )}
+                      </>
                     )}
                   </Box>
                 </ListItem>
