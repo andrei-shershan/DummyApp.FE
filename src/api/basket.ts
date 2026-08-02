@@ -38,8 +38,17 @@ export async function getBasketPrintSizes(): Promise<PrintSizeDto[]> {
   return fetchClient<PrintSizeDto[]>('/api/basket/print-sizes');
 }
 
-export async function payBasket(): Promise<void> {
-  await fetchClient<void>('/api/basket/pay', {
+export async function setBasketStatus(status: string): Promise<void> {
+  await fetchClient<void>('/api/basket/status', {
     method: 'POST',
+    data: { status },
   });
+}
+
+export async function reviewBasket(): Promise<void> {
+  await setBasketStatus('Processing');
+}
+
+export async function activateBasket(): Promise<void> {
+  await setBasketStatus('Active');
 }
