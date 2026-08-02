@@ -15,7 +15,7 @@ import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import { useAppContext } from '../context/AppContext';
 import { getBasketPrintSizes } from '../api/basket';
-import { BasketItemDto, PrintSizeDto } from '../types/api';
+import { PrintSizeDto } from '../types/api';
 
 function BasketPage() {
   const { basketItems, basketLoading, basketError, basketStatus, refreshBasketItems, payBasket, updateBasketItemQuantity } = useAppContext();
