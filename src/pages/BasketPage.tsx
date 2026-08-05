@@ -18,7 +18,7 @@ import { getBasketPrintSizes } from '../api/basket';
 import { PrintSizeDto } from '../types/api';
 
 function BasketPage() {
-  const { basketItems, basketLoading, basketError, basketStatus, refreshBasketItems, payBasket, activateBasket, updateBasketItemQuantity } = useAppContext();
+  const { basketItems, basketLoading, basketError, basketStatus, refreshBasketItems, payBasket, payOrder, activateBasket, updateBasketItemQuantity } = useAppContext();
   const [actionError, setActionError] = useState<string | null>(null);
   const [updatingItemIds, setUpdatingItemIds] = useState<Record<string, boolean>>({});
   const [paying, setPaying] = useState(false);
@@ -123,24 +123,45 @@ function BasketPage() {
       {!basketLoading && !basketError && hasItems && (
         <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
           {isSummaryMode ? (
-            <Button
-              variant="contained"
-              onClick={async () => {
-                setActionError(null);
-                setActivating(true);
+            <>
+              <Button
+                variant="outlined"
+                onClick={async () => {
+                  setActionError(null);
+                  setActivating(true);
 
-                try {
-                  await activateBasket();
-                } catch (err: any) {
-                  setActionError(err?.message ?? 'Unable to edit basket.');
-                } finally {
-                  setActivating(false);
-                }
-              }}
-              disabled={basketLoading || activating}
-            >
-              Edit basket
-            </Button>
+                  try {
+                    await activateBasket();
+                  } catch (err: any) {
+                    setActionError(err?.message ?? 'Unable to edit basket.');
+                  } finally {
+                    setActivating(false);
+                  }
+                }}
+                disabled={basketLoading || activating || paying}
+              >
+                Edit basket
+              </Button>
+              <Button
+                variant="contained"
+                onClick={async () => {
+                  setActionError(null);
+                  setPaying(true);
+
+                  try {
+                    const checkoutUrl = await payOrder();
+                    window.location.href = checkoutUrl;
+                  } catch (err: any) {
+                    setActionError(err?.message ?? 'Unable to start checkout.');
+                  } finally {
+                    setPaying(false);
+                  }
+                }}
+                disabled={basketLoading || paying || activating}
+              >
+                Pay order
+              </Button>
+            </>
           ) : (
             <Button
               variant="contained"
