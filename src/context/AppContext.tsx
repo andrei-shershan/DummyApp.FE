@@ -5,6 +5,7 @@ import { createArtwork as createArtworkApi, getArtworkById, getArtworks, toggleA
 import { getAdminUsers, getRoles, getPrintSizes, toggleUserActive as toggleUserActiveApi } from '../api/admin';
 import { sendInvite as sendInviteApi } from '../api/invite';
 import { getBasketSummary, reviewBasket as reviewBasketApi, activateBasket as activateBasketApi, updateBasketItemQuantity as updateBasketItemQuantityApi } from '../api/basket';
+import { checkoutBasket } from '../api/payment';
 
 interface AppContextState {
   user: CurrentUser | null;
@@ -26,6 +27,7 @@ interface AppContextState {
   refreshAdminData: () => Promise<void>;
   refreshBasketItems: () => Promise<void>;
   payBasket: () => Promise<void>;
+  payOrder: () => Promise<string>;
   activateBasket: () => Promise<void>;
   updateBasketItemQuantity: (artworkId: string, quantity: number, printSizeId?: number, priceId?: number) => Promise<void>;
   loadArtworkById: (id: string, activeOnly?: boolean) => Promise<void>;
@@ -154,6 +156,17 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
     }
   }, [refreshBasketItems]);
 
+  const payOrder = useCallback(async () => {
+    try {
+      const url = await checkoutBasket();
+      setError(null);
+      return url;
+    } catch (err: any) {
+      setError(err?.message ?? 'Unable to start checkout.');
+      throw err;
+    }
+  }, []);
+
   const activateBasket = useCallback(async () => {
     try {
       await activateBasketApi();
@@ -247,6 +260,7 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
         refreshAdminData,
         refreshBasketItems,
         payBasket,
+        payOrder,
         activateBasket,
         updateBasketItemQuantity,
         loadArtworkById,
