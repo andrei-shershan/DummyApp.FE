@@ -22,6 +22,7 @@ import ArtworksPage from './pages/ArtworksPage';
 import MyWorksPage from './pages/MyWorksPage';
 import ArtworkDetailsPage from './pages/ArtworkDetailsPage';
 import BasketPage from './pages/BasketPage';
+import OrdersPage from './pages/OrdersPage';
 import AdminPage from './pages/AdminPage';
 import InviteRegisterRedirectPage from './pages/InviteRegisterRedirectPage';
 
@@ -62,6 +63,10 @@ function AppContent() {
     {
       label: `Basket${basketCount > 0 ? ` (${basketCount})` : ''}`,
       onClick: () => navigate('/basket'),
+    },
+    {
+      label: 'Orders',
+      onClick: () => navigate('/orders'),
     },
   ];
 
@@ -170,6 +175,7 @@ function App() {
         <Route path="my-works" element={<MyWorksPage />} />
         <Route path="my-works/:id" element={<ArtworkDetailsPage />} />
         <Route path="basket" element={<BasketPage />} />
+        <Route path="orders" element={<OrdersPage />} />
         <Route path="admin" element={<AdminPage />} />
         <Route path="register/*" element={<InviteRegisterRedirectPage />} />
       </Route>
