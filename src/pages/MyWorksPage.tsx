@@ -41,7 +41,7 @@ function MyWorksPage() {
       <Grid container spacing={2} sx={{ mt: 1 }}>
         {artworks.map(artwork => (
           <Grid item xs={12} sm={6} md={4} key={artwork.id}>
-            <ArtworkCard artwork={artwork} onViewDetails={() => navigate(`/my-works/${artwork.id}`)} />
+            <ArtworkCard artwork={artwork} onViewDetails={() => navigate(`/portal/my-works/${artwork.id}`)} />
           </Grid>
         ))}
       </Grid>

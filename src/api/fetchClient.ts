@@ -34,6 +34,12 @@ export async function fetchClient<T>(path: string, options: FetchOptions = {}): 
   });
 
   if (!response.ok) {
+    if (response.status === 401 || response.status === 403) {
+      const loginUrl = `${BFF_HOST}/login?returnUrl=${encodeURIComponent(window.location.href)}`;
+      window.location.replace(loginUrl);
+      throw new Error('Authentication required. Redirecting to login.');
+    }
+
     const errorPayload = await parseJson(response).catch(() => null);
     const message = errorPayload?.message || response.statusText || 'Unexpected error from server.';
     throw new Error(message);

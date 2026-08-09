@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, Route, Routes, useNavigate } from 'react-router-dom';
+import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -16,7 +16,6 @@ import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { useAppContext } from './context/AppContext';
-import { BFF_HOST } from './config';
 import HomePage from './pages/HomePage';
 import ArtworksPage from './pages/ArtworksPage';
 import MyWorksPage from './pages/MyWorksPage';
@@ -25,6 +24,8 @@ import BasketPage from './pages/BasketPage';
 import OrdersPage from './pages/OrdersPage';
 import AdminPage from './pages/AdminPage';
 import InviteRegisterRedirectPage from './pages/InviteRegisterRedirectPage';
+import PortalLayout from './components/PortalLayout';
+import PortalHomePage from './pages/PortalHomePage';
 
 const drawerWidth = 280;
 
@@ -33,26 +34,15 @@ interface NavItem {
   onClick: () => void;
 }
 
-function AppContent() {
+function PublicLayout() {
   const theme = useTheme();
   const navigate = useNavigate();
-  const { user, basketCount } = useAppContext();
+  const { basketCount } = useAppContext();
   const [mobileOpen, setMobileOpen] = useState(false);
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const isAuthenticated = user?.isAuthenticated === true;
-  const isAdmin = user?.roles?.includes('Admin');
-
   const handleDrawerToggle = () => {
     setMobileOpen(prev => !prev);
-  };
-
-  const handleLogin = () => {
-    window.location.href = `${BFF_HOST}/login`;
-  };
-
-  const handleLogout = () => {
-    window.location.href = `${BFF_HOST}/logout`;
   };
 
   const navItems: NavItem[] = [
@@ -69,30 +59,6 @@ function AppContent() {
       onClick: () => navigate('/orders'),
     },
   ];
-
-  if (isAuthenticated) {
-    navItems.push({
-      label: 'MyArtworks',
-      onClick: () => navigate('/my-works'),
-    });
-
-    if (isAdmin) {
-      navItems.push({
-        label: 'Admin Panel',
-        onClick: () => navigate('/admin'),
-      });
-    }
-
-    navItems.push({
-      label: 'LogOut',
-      onClick: handleLogout,
-    });
-  } else {
-    navItems.push({
-      label: 'LogIn',
-      onClick: handleLogin,
-    });
-  }
 
   const drawer = (
     <Box sx={{ width: drawerWidth, p: 2 }} role="presentation" onClick={handleDrawerToggle}>
@@ -168,17 +134,24 @@ function AppContent() {
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<AppContent />}>
+      <Route path="/" element={<PublicLayout />}>
         <Route index element={<HomePage />} />
         <Route path="artworks" element={<ArtworksPage />} />
         <Route path="artworks/:id" element={<ArtworkDetailsPage />} />
-        <Route path="my-works" element={<MyWorksPage />} />
-        <Route path="my-works/:id" element={<ArtworkDetailsPage />} />
         <Route path="basket" element={<BasketPage />} />
         <Route path="orders" element={<OrdersPage />} />
-        <Route path="admin" element={<AdminPage />} />
         <Route path="register/*" element={<InviteRegisterRedirectPage />} />
       </Route>
+
+      <Route path="portal" element={<PortalLayout />}>
+        <Route index element={<PortalHomePage />} />
+        <Route path="my-works" element={<MyWorksPage />} />
+        <Route path="my-works/:id" element={<ArtworkDetailsPage />} />
+        <Route path="admin" element={<AdminPage />} />
+      </Route>
+      <Route path="my-works" element={<Navigate to="/portal/my-works" replace />} />
+      <Route path="my-works/:id" element={<Navigate to="/portal/my-works/:id" replace />} />
+      <Route path="admin" element={<Navigate to="/portal/admin" replace />} />
     </Routes>
   );
 }
