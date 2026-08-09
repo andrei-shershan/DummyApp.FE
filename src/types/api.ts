@@ -49,9 +49,22 @@ export interface BasketItemDto {
   priceValue?: number;
 }
 
+export interface OrderAddressDto {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string;
+  country: string;
+  city: string;
+  street: string;
+  houseNumber: string;
+  postalCode: string;
+}
+
 export interface BasketSummaryDto {
   items: BasketItemDto[];
   status: string;
+  address?: OrderAddressDto;
 }
 
 export interface PriceDto {
