@@ -4,6 +4,8 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
+import Grid from '@mui/material/Grid';
+import TextField from '@mui/material/TextField';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
@@ -16,15 +18,27 @@ import MenuItem from '@mui/material/MenuItem';
 import { useAppContext } from '../context/AppContext';
 import PageLoadingOverlay from '../components/PageLoadingOverlay';
 import { getBasketPrintSizes } from '../api/basket';
-import { PrintSizeDto } from '../types/api';
+import { OrderAddressDto, PrintSizeDto } from '../types/api';
 
 function BasketPage() {
-  const { basketItems, basketLoading, basketError, basketStatus, payBasket, payOrder, activateBasket, updateBasketItemQuantity } = useAppContext();
+  const { basketItems, basketLoading, basketError, basketStatus, basketAddress, payBasket, payOrder, activateBasket, saveBasketAddress, continueBasket, updateBasketItemQuantity } = useAppContext();
   const [actionError, setActionError] = useState<string | null>(null);
   const [updatingItemIds, setUpdatingItemIds] = useState<Record<string, boolean>>({});
   const [paying, setPaying] = useState(false);
   const [activating, setActivating] = useState(false);
+  const [isSavingAddress, setIsSavingAddress] = useState(false);
   const [printSizes, setPrintSizes] = useState<PrintSizeDto[]>([]);
+  const [orderAddress, setOrderAddress] = useState<OrderAddressDto>({
+    firstName: '',
+    lastName: '',
+    phone: '',
+    email: '',
+    country: '',
+    city: '',
+    street: '',
+    houseNumber: '',
+    postalCode: ''
+  });
 
   const isEditable = basketStatus === null || basketStatus === 'Active';
   const isSummaryMode = basketStatus === 'Processing';
@@ -49,6 +63,13 @@ function BasketPage() {
   };
 
   const totalItems = basketItems.reduce((sum, item) => sum + item.quantity, 0);
+  const isAddressMode = basketStatus === 'Address';
+
+  useEffect(() => {
+    if (isAddressMode && basketAddress) {
+      setOrderAddress(basketAddress);
+    }
+  }, [isAddressMode, basketAddress]);
 
   useEffect(() => {
     async function loadPrintSizes() {
@@ -183,6 +204,127 @@ function BasketPage() {
               Review Details
             </Button>
           )}
+        </Box>
+      )}
+
+      {!basketError && isAddressMode && (
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h6" gutterBottom>
+            Step 2 - Shipping address
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="First Name"
+                value={orderAddress.firstName}
+                onChange={event => setOrderAddress(prev => ({ ...prev, firstName: event.target.value }))}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Last Name"
+                value={orderAddress.lastName}
+                onChange={event => setOrderAddress(prev => ({ ...prev, lastName: event.target.value }))}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Email"
+                type="email"
+                value={orderAddress.email}
+                onChange={event => setOrderAddress(prev => ({ ...prev, email: event.target.value }))}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Phone"
+                value={orderAddress.phone}
+                onChange={event => setOrderAddress(prev => ({ ...prev, phone: event.target.value }))}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Country"
+                value={orderAddress.country}
+                onChange={event => setOrderAddress(prev => ({ ...prev, country: event.target.value }))}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="City"
+                value={orderAddress.city}
+                onChange={event => setOrderAddress(prev => ({ ...prev, city: event.target.value }))}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Street"
+                value={orderAddress.street}
+                onChange={event => setOrderAddress(prev => ({ ...prev, street: event.target.value }))}
+              />
+            </Grid>
+            <Grid item xs={12} sm={3}>
+              <TextField
+                fullWidth
+                label="House Number"
+                value={orderAddress.houseNumber}
+                onChange={event => setOrderAddress(prev => ({ ...prev, houseNumber: event.target.value }))}
+              />
+            </Grid>
+            <Grid item xs={12} sm={3}>
+              <TextField
+                fullWidth
+                label="Postal Code"
+                value={orderAddress.postalCode}
+                onChange={event => setOrderAddress(prev => ({ ...prev, postalCode: event.target.value }))}
+              />
+            </Grid>
+          </Grid>
+          <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+            <Button
+              variant="outlined"
+              onClick={async () => {
+                setActionError(null);
+                setActivating(true);
+                try {
+                  await activateBasket();
+                } catch (err: any) {
+                  setActionError(err?.message ?? 'Unable to edit basket.');
+                } finally {
+                  setActivating(false);
+                }
+              }}
+              disabled={basketLoading || activating || isSavingAddress}
+            >
+              Edit basket
+            </Button>
+            <Button
+              variant="contained"
+              onClick={async () => {
+                setActionError(null);
+                setIsSavingAddress(true);
+
+                try {
+                  await saveBasketAddress(orderAddress);
+                  await continueBasket();
+                } catch (err: any) {
+                  setActionError(err?.message ?? 'Unable to save address.');
+                } finally {
+                  setIsSavingAddress(false);
+                }
+              }}
+              disabled={basketLoading || activating || isSavingAddress || !orderAddress.firstName || !orderAddress.lastName || !orderAddress.email || !orderAddress.phone || !orderAddress.country || !orderAddress.city || !orderAddress.street || !orderAddress.houseNumber || !orderAddress.postalCode}
+            >
+              Continue
+            </Button>
+          </Box>
         </Box>
       )}
 

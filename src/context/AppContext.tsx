@@ -1,10 +1,10 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { CurrentUser, ArtworkDto, AdminUserDto, ArtworkCreateRequest, RoleDto, BasketItemDto, PrintSizeDto } from '../types/api';
+import { CurrentUser, ArtworkDto, AdminUserDto, ArtworkCreateRequest, RoleDto, BasketItemDto, OrderAddressDto, PrintSizeDto } from '../types/api';
 import { getCurrentUser } from '../api/auth';
 import { createArtwork as createArtworkApi, getArtworkById, getArtworks, toggleArtworkActive as toggleArtworkActiveApi } from '../api/artworks';
 import { getAdminUsers, getRoles, getPrintSizes, toggleUserActive as toggleUserActiveApi } from '../api/admin';
 import { sendInvite as sendInviteApi } from '../api/invite';
-import { getBasketSummary, reviewBasket as reviewBasketApi, activateBasket as activateBasketApi, updateBasketItemQuantity as updateBasketItemQuantityApi } from '../api/basket';
+import { getBasketSummary, getBasketAddress, saveBasketAddress as saveBasketAddressApi, continueBasket as continueBasketApi, reviewBasket as reviewBasketApi, activateBasket as activateBasketApi, updateBasketItemQuantity as updateBasketItemQuantityApi } from '../api/basket';
 import { checkoutBasket } from '../api/payment';
 
 interface AppContextState {
@@ -18,6 +18,7 @@ interface AppContextState {
   printSizes: PrintSizeDto[];
   basketItems: BasketItemDto[];
   basketStatus: string | null;
+  basketAddress: OrderAddressDto | null;
   basketCount: number;
   basketLoading: boolean;
   basketError: string | null;
@@ -31,6 +32,9 @@ interface AppContextState {
   payBasket: () => Promise<void>;
   payOrder: () => Promise<string>;
   activateBasket: () => Promise<void>;
+  saveBasketAddress: (address: OrderAddressDto) => Promise<void>;
+  continueBasket: () => Promise<void>;
+  refreshBasketAddress: () => Promise<void>;
   updateBasketItemQuantity: (artworkId: string, quantity: number, printSizeId?: number, priceId?: number) => Promise<void>;
   loadArtworkById: (id: string, activeOnly?: boolean) => Promise<void>;
   toggleArtworkActive: (id: string) => Promise<void>;
@@ -51,6 +55,7 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
   const [printSizes, setPrintSizes] = useState<PrintSizeDto[]>([]);
   const [basketItems, setBasketItems] = useState<BasketItemDto[]>([]);
   const [basketStatus, setBasketStatus] = useState<string | null>(null);
+  const [basketAddress, setBasketAddress] = useState<OrderAddressDto | null>(null);
   const [basketCount, setBasketCount] = useState(0);
   const [basketLoading, setBasketLoading] = useState(false);
   const [basketError, setBasketError] = useState<string | null>(null);
@@ -135,10 +140,12 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
       if (summary === null) {
         setBasketItems([]);
         setBasketStatus(null);
+        setBasketAddress(null);
         setBasketCount(0);
       } else {
         setBasketItems(summary.items);
         setBasketStatus(summary.status);
+        setBasketAddress(summary.address ?? null);
         setBasketCount(summary.items.reduce((sum, item) => sum + item.quantity, 0));
       }
       setBasketError(null);
@@ -146,6 +153,15 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
       setBasketError(err?.message ?? 'Unable to load basket summary.');
     } finally {
       setBasketLoading(false);
+    }
+  }, []);
+
+  const refreshBasketAddress = useCallback(async () => {
+    try {
+      const address = await getBasketAddress();
+      setBasketAddress(address);
+    } catch (err: any) {
+      setError(err?.message ?? 'Unable to load basket address.');
     }
   }, []);
 
@@ -157,6 +173,34 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
     } catch (err: any) {
       setError(err?.message ?? 'Unable to pay for basket.');
       throw err;
+    }
+  }, [refreshBasketItems]);
+
+  const saveBasketAddress = useCallback(async (address: OrderAddressDto) => {
+    setBasketLoading(true);
+    try {
+      await saveBasketAddressApi(address);
+      await refreshBasketItems();
+      setError(null);
+    } catch (err: any) {
+      setError(err?.message ?? 'Unable to save basket address.');
+      throw err;
+    } finally {
+      setBasketLoading(false);
+    }
+  }, [refreshBasketItems]);
+
+  const continueBasket = useCallback(async () => {
+    setBasketLoading(true);
+    try {
+      await continueBasketApi();
+      await refreshBasketItems();
+      setError(null);
+    } catch (err: any) {
+      setError(err?.message ?? 'Unable to continue basket.');
+      throw err;
+    } finally {
+      setBasketLoading(false);
     }
   }, [refreshBasketItems]);
 
@@ -256,6 +300,7 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
         printSizes,
         basketItems,
         basketStatus,
+        basketAddress,
         basketCount,
         basketLoading,
         basketError,
@@ -269,6 +314,9 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
         payBasket,
         payOrder,
         activateBasket,
+        saveBasketAddress,
+        continueBasket,
+        refreshBasketAddress,
         updateBasketItemQuantity,
         loadArtworkById,
         toggleArtworkActive,
