@@ -9,10 +9,13 @@ import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useAppContext } from '../context/AppContext';
 import { addArtworkToBasket } from '../api/basket';
+import PageLoadingOverlay from '../components/PageLoadingOverlay';
 
 function ArtworkDetailsPage() {
   const { id } = useParams<{ id: string }>();
-  const isMyWorksRoute = useMatch('/my-works/:id') != null;
+  const myWorksMatch = useMatch('/my-works/:id');
+  const portalMyWorksMatch = useMatch('/portal/my-works/:id');
+  const isMyWorksRoute = myWorksMatch != null || portalMyWorksMatch != null;
   const navigate = useNavigate();
   const { selectedArtwork, loadingDetail, error, loadArtworkById, toggleArtworkActive, user, isArtworkInBasket, refreshBasketItems } = useAppContext();
   const [actionError, setActionError] = useState<string | null>(null);
@@ -45,7 +48,7 @@ function ArtworkDetailsPage() {
 
   const canManageArtwork = user?.roles?.includes('Creator') || user?.roles?.includes('Admin');
   const showArtworkActions = isMyWorksRoute && canManageArtwork;
-  const backRoute = isMyWorksRoute ? '/my-works' : '/artworks';
+  const backRoute = isMyWorksRoute ? '/portal/my-works' : '/artworks';
 
   const handleAddToBasket = async () => {
     if (!selectedArtwork) {
@@ -66,7 +69,8 @@ function ArtworkDetailsPage() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ pt: 3, pb: 4 }}>
+    <Container maxWidth="lg" sx={{ pt: 3, pb: 4, position: 'relative' }}>
+      <PageLoadingOverlay open={selectedArtwork != null && basketLoading} />
       <Button variant="outlined" onClick={() => navigate(backRoute)} sx={{ mb: 3 }}>
         Back
       </Button>

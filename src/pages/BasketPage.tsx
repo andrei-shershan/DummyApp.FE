@@ -14,11 +14,12 @@ import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import { useAppContext } from '../context/AppContext';
+import PageLoadingOverlay from '../components/PageLoadingOverlay';
 import { getBasketPrintSizes } from '../api/basket';
 import { PrintSizeDto } from '../types/api';
 
 function BasketPage() {
-  const { basketItems, basketLoading, basketError, basketStatus, refreshBasketItems, payBasket, payOrder, activateBasket, updateBasketItemQuantity } = useAppContext();
+  const { basketItems, basketLoading, basketError, basketStatus, payBasket, payOrder, activateBasket, updateBasketItemQuantity } = useAppContext();
   const [actionError, setActionError] = useState<string | null>(null);
   const [updatingItemIds, setUpdatingItemIds] = useState<Record<string, boolean>>({});
   const [paying, setPaying] = useState(false);
@@ -40,7 +41,6 @@ function BasketPage() {
 
     try {
       await updateBasketItemQuantity(artworkId, quantity, printSizeId, priceId);
-      await refreshBasketItems();
     } catch (err: any) {
       setActionError(err?.message ?? 'Unable to update basket item.');
     } finally {
@@ -68,7 +68,8 @@ function BasketPage() {
   const printSizeOptions = useMemo(() => printSizes, [printSizes]);
 
   return (
-    <Container maxWidth="lg" sx={{ pt: 3, pb: 4 }}>
+    <Container maxWidth="lg" sx={{ pt: 3, pb: 4, position: 'relative' }}>
+      <PageLoadingOverlay open={basketLoading && hasItems} />
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4">Basket</Typography>
         <Typography variant="body1">Total items: {totalItems}</Typography>
@@ -87,28 +88,28 @@ function BasketPage() {
         </Box>
       )}
 
-      {!basketLoading && !basketError && !isSummaryMode && hasItems && (
+      {!basketError && !isSummaryMode && hasItems && (
         <Box sx={{ mb: 2 }}>
           <Typography variant="h6">Order summary</Typography>
           <Typography>{totalItems} item(s) ready for payment.</Typography>
         </Box>
       )}
 
-      {basketLoading && (
+      {basketLoading && !hasItems && (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
           <CircularProgress />
         </Box>
       )}
 
-      {!basketLoading && basketError && (
+      {basketError && (
         <Typography color="error">{basketError}</Typography>
       )}
 
-      {!basketLoading && !basketError && !hasItems && (
+      {!basketError && !hasItems && !basketLoading && (
         <Typography>Your basket is empty. Add an artwork to create a basket.</Typography>
       )}
 
-      {!basketLoading && !basketError && hasItems && !isSummaryMode && !isBasketReadyForReview && (
+      {!basketError && hasItems && !isSummaryMode && !isBasketReadyForReview && (
         <Typography color="text.secondary" sx={{ mb: 2 }}>
           All items must have a print size and a price before you can review details.
         </Typography>
@@ -120,7 +121,7 @@ function BasketPage() {
         </Typography>
       )}
 
-      {!basketLoading && !basketError && hasItems && (
+      {!basketError && hasItems && (
         <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
           {isSummaryMode ? (
             <>
@@ -185,7 +186,7 @@ function BasketPage() {
         </Box>
       )}
 
-      {!basketLoading && !basketError && hasItems && (
+      {!basketError && hasItems && (
         <List>
           {basketItems.map(item => {
             const currentPrintSizeId = item.printSizeId;

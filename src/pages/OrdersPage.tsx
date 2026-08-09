@@ -10,6 +10,7 @@ import ListItemAvatar from '@mui/material/ListItemAvatar';
 import Avatar from '@mui/material/Avatar';
 import Divider from '@mui/material/Divider';
 import { useAppContext } from '../context/AppContext';
+import PageLoadingOverlay from '../components/PageLoadingOverlay';
 
 function OrdersPage() {
   const { basketItems, basketLoading, basketError, basketStatus, refreshBasketItems } = useAppContext();
@@ -41,7 +42,8 @@ function OrdersPage() {
     : 'No order summary is available yet.';
 
   return (
-    <Container maxWidth="lg" sx={{ pt: 3, pb: 4 }}>
+    <Container maxWidth="lg" sx={{ pt: 3, pb: 4, position: 'relative' }}>
+      <PageLoadingOverlay open={basketLoading && basketItems.length > 0} />
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
         <Box>
           <Typography variant="h4" gutterBottom>
@@ -61,17 +63,17 @@ function OrdersPage() {
         )}
       </Box>
 
-      {basketLoading && (
+      {basketLoading && basketItems.length === 0 && (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
           <CircularProgress />
         </Box>
       )}
 
-      {!basketLoading && basketError && (
+      {basketError && (
         <Typography color="error">{basketError}</Typography>
       )}
 
-      {!basketLoading && !basketError && basketItems.length === 0 && (
+      {!basketError && basketItems.length === 0 && !basketLoading && (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, pt: 4 }}>
           <Typography>No current order was found.</Typography>
           <Button variant="contained" href="/artworks">Browse artworks</Button>

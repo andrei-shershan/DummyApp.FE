@@ -9,6 +9,8 @@ import { checkoutBasket } from '../api/payment';
 
 interface AppContextState {
   user: CurrentUser | null;
+  authError: string | null;
+  userLoading: boolean;
   artworks: ArtworkDto[];
   selectedArtwork: ArtworkDto | null;
   adminUsers: AdminUserDto[];
@@ -55,15 +57,20 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
   const [loading, setLoading] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [userLoading, setUserLoading] = useState(false);
 
   const refreshUser = useCallback(async () => {
+    setUserLoading(true);
     try {
       const currentUser = await getCurrentUser();
       setUser(currentUser);
-      setError(null);
+      setAuthError(null);
     } catch (err: any) {
       setUser({ isAuthenticated: false });
-      setError(err?.message ?? 'Unable to load user information.');
+      setAuthError(err?.message ?? 'Unable to load user information.');
+    } finally {
+      setUserLoading(false);
     }
   }, []);
 
@@ -136,9 +143,6 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
       }
       setBasketError(null);
     } catch (err: any) {
-      setBasketItems([]);
-      setBasketStatus(null);
-      setBasketCount(0);
       setBasketError(err?.message ?? 'Unable to load basket summary.');
     } finally {
       setBasketLoading(false);
@@ -179,6 +183,7 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
   }, [refreshBasketItems]);
 
   const updateBasketItemQuantity = useCallback(async (artworkId: string, quantity: number, printSizeId?: number, priceId?: number) => {
+    setBasketLoading(true);
     try {
       await updateBasketItemQuantityApi(artworkId, quantity, printSizeId, priceId);
       await refreshBasketItems();
@@ -186,6 +191,8 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
     } catch (err: any) {
       setError(err?.message ?? 'Unable to update basket item.');
       throw err;
+    } finally {
+      setBasketLoading(false);
     }
   }, [refreshBasketItems]);
 
@@ -229,14 +236,14 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     async function initialize() {
       setLoading(true);
-      await Promise.all([refreshUser(), refreshArtworks(), refreshBasketItems()]);
+      await Promise.all([refreshArtworks(), refreshBasketItems()]);
       setLoading(false);
     }
 
     initialize().catch(() => {
       setLoading(false);
     });
-  }, [refreshArtworks, refreshUser, refreshBasketItems]);
+  }, [refreshArtworks, refreshBasketItems]);
 
   return (
     <AppContext.Provider
@@ -269,6 +276,8 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
         createArtwork,
         isArtworkInBasket,
         sendInvite,
+        authError,
+        userLoading,
       }}
     >
       {children}
