@@ -16,7 +16,6 @@ import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { useAppContext } from './context/AppContext';
-import { BFF_HOST } from './config';
 import HomePage from './pages/HomePage';
 import ArtworksPage from './pages/ArtworksPage';
 import MyWorksPage from './pages/MyWorksPage';
