@@ -16,6 +16,7 @@ interface ArtworkFormData {
   seriesName: string;
   uploadedImage: string | null;
   fileName: string | null;
+  fileType: string | null;
 }
 
 function ArtworkUploadForm() {
@@ -27,6 +28,7 @@ function ArtworkUploadForm() {
     seriesName: '',
     uploadedImage: null,
     fileName: null,
+    fileType: null,
   });
   const [seriesList, setSeriesList] = useState<SeriesDto[]>([]);
   const [loading, setLoading] = useState(false);
@@ -42,10 +44,12 @@ function ArtworkUploadForm() {
     const reader = new FileReader();
     reader.onload = () => {
       const result = reader.result as string;
+      const [, base64] = result.split(',');
       setForm(prev => ({
         ...prev,
-        uploadedImage: result.split(',')[1],
+        uploadedImage: base64,
         fileName: file.name,
+        fileType: file.type,
       }));
     };
     reader.readAsDataURL(file);
@@ -85,7 +89,7 @@ function ArtworkUploadForm() {
         seriesName: form.seriesName,
       });
       setSuccess('Artwork created successfully.');
-      setForm({ name: '', description: '', creationDate: new Date().toISOString().split('T')[0], seriesName: '', uploadedImage: null, fileName: null });
+      setForm({ name: '', description: '', creationDate: new Date().toISOString().split('T')[0], seriesName: '', uploadedImage: null, fileName: null, fileType: null });
     } catch (err: any) {
       setError(err?.message ?? 'Unable to create artwork.');
     } finally {
@@ -144,6 +148,19 @@ function ArtworkUploadForm() {
             <input hidden accept="image/*" type="file" onChange={handleFileChange} />
           </Button>
           {form.fileName && <Typography variant="body2">Selected file: {form.fileName}</Typography>}
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            Image should be portrait A4, at least 1024px wide, and no more than 10 MB.
+          </Typography>
+          {form.uploadedImage && (
+            <Box sx={{ width: '100%', maxWidth: 360, aspectRatio: '1 / 1.414', overflow: 'hidden', borderRadius: 2, border: 1, borderColor: 'divider', mt: 1 }}>
+              <Box
+                component="img"
+                src={`data:${form.fileType ?? 'image/png'};base64,${form.uploadedImage}`}
+                alt={form.fileName ?? 'Uploaded artwork preview'}
+                sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </Box>
+          )}
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
             <Button type="submit" variant="contained" disabled={loading || !form.name}>
               {loading ? 'Creating...' : 'Create'}

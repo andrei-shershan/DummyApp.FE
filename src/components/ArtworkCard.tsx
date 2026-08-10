@@ -1,4 +1,5 @@
 import React from 'react';
+import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
@@ -14,8 +15,30 @@ interface ArtworkCardProps {
 function ArtworkCard({ artwork, onViewDetails }: ArtworkCardProps) {
   return (
     <Card>
-      {artwork.imgUrl && (
-        <CardMedia component="img" height="160" image={artwork.imgUrl} alt={artwork.name} />
+      {artwork.imgUrl ? (
+        <Box sx={{ width: '100%', aspectRatio: '1 / 1.414', overflow: 'hidden' }}>
+          <CardMedia
+            component="img"
+            image={artwork.imgUrl}
+            alt={artwork.name}
+            sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        </Box>
+      ) : (
+        <Box
+          sx={{
+            width: '100%',
+            aspectRatio: '1 / 1.414',
+            bgcolor: 'grey.200',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Typography variant="subtitle2" color="text.secondary">
+            No image available
+          </Typography>
+        </Box>
       )}
       <CardContent>
         <Typography variant="h6" gutterBottom>

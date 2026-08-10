@@ -95,7 +95,14 @@ function ArtworkDetailsPage() {
               Status: {selectedArtwork.isActive ? 'Active' : 'Inactive'}
             </Typography>
             {(selectedArtwork.imgUrl ?? selectedArtwork.imgUrl) && (
-              <Box component="img" src={selectedArtwork.imgUrl ?? selectedArtwork.imgUrl} alt={selectedArtwork.name} sx={{ width: '100%', maxHeight: 420, objectFit: 'cover', borderRadius: 2, mb: 3 }} />
+              <Box sx={{ width: '100%', aspectRatio: '1 / 1.414', overflow: 'hidden', borderRadius: 2, mb: 3 }}>
+                <Box
+                  component="img"
+                  src={selectedArtwork.imgUrl ?? selectedArtwork.imgUrl}
+                  alt={selectedArtwork.name}
+                  sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              </Box>
             )}
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
               {isArtworkInBasket(selectedArtwork.id) ? (
