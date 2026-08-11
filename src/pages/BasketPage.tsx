@@ -12,9 +12,9 @@ import ListItemAvatar from '@mui/material/ListItemAvatar';
 import Avatar from '@mui/material/Avatar';
 import Divider from '@mui/material/Divider';
 import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
 import { useAppContext } from '../context/AppContext';
 import PageLoadingOverlay from '../components/PageLoadingOverlay';
 import { getBasketPrintSizes } from '../api/basket';
@@ -44,6 +44,40 @@ function BasketPage() {
   const isSummaryMode = basketStatus === 'Processing';
   const hasItems = basketItems.length > 0;
   const isBasketReadyForReview = hasItems && basketItems.every(item => item.printSizeId != null && item.priceId != null);
+  const basketTotalPrice = basketItems.reduce((sum, item) => sum + ((item.priceValue ?? 0) * item.quantity), 0);
+
+  const basketSummaryCompact = () => (
+    <Box sx={{ mb: 3, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+      <Typography variant="subtitle1" gutterBottom>
+        Order summary
+      </Typography>
+      <List disablePadding>
+        {basketItems.map(item => {
+          const sizeName = item.printSizeName ?? printSizeOptions.find(size => size.id === item.printSizeId)?.name ?? 'N/A';
+          return (
+            <ListItem key={`${item.orderId}-${item.artworkId}`} sx={{ p: 1, alignItems: 'center' }}>
+              <ListItemAvatar>
+                <Avatar variant="rounded" src={item.thumbnailUrl} alt={item.name} sx={{ width: 52, height: 52 }} />
+              </ListItemAvatar>
+              <Box sx={{ ml: 2, flex: 1, minWidth: 0 }}>
+                <Typography variant="body2" noWrap>
+                  {item.name}
+                </Typography>
+                <Typography variant="caption" color="text.secondary" noWrap>
+                  {sizeName} · Qty {item.quantity} · {item.priceValue != null ? item.priceValue.toFixed(2) : '-'}
+                </Typography>
+              </Box>
+            </ListItem>
+          );
+        })}
+      </List>
+      <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end' }}>
+        <Typography variant="subtitle2" fontWeight="bold">
+          Total: {basketTotalPrice.toFixed(2)}
+        </Typography>
+      </Box>
+    </Box>
+  );
 
   const handleItemUpdate = async (artworkId: string, quantity: number, printSizeId?: number, priceId?: number) => {
     if (!isEditable) {
@@ -103,16 +137,34 @@ function BasketPage() {
       )}
 
       {isSummaryMode && (
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="h6">Step 2 - View Summary</Typography>
-          <Typography>Review the basket contents before editing again.</Typography>
+        <Box sx={{ mb: 3 }}>
+          {basketSummaryCompact()}
+          <Box sx={{ mb: 2, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+            <Typography variant="h6" gutterBottom>
+              Delivery details
+            </Typography>
+            {basketAddress ? (
+              <Box>
+                <Typography>{basketAddress.firstName} {basketAddress.lastName}</Typography>
+                <Typography>{basketAddress.phone}</Typography>
+                <Typography>{basketAddress.email}</Typography>
+                <Typography>{basketAddress.street} {basketAddress.houseNumber}, {basketAddress.city}, {basketAddress.postalCode}</Typography>
+              </Box>
+            ) : (
+              <Typography color="text.secondary">Delivery address is not available.</Typography>
+            )}
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+              you will be redirected to Stripe
+            </Typography>
+          </Box>
+          <Typography variant="h6">Step 3 - Order confirmation</Typography>
+          <Typography>Review the basket contents and delivery details before payment.</Typography>
         </Box>
       )}
 
-      {!basketError && !isSummaryMode && hasItems && (
+      {!basketError && !isSummaryMode && hasItems && isEditable && (
         <Box sx={{ mb: 2 }}>
           <Typography variant="h6">Order summary</Typography>
-          <Typography>{totalItems} item(s) ready for payment.</Typography>
         </Box>
       )}
 
@@ -142,73 +194,51 @@ function BasketPage() {
         </Typography>
       )}
 
-      {!basketError && hasItems && (
+      {!basketError && hasItems && isSummaryMode && (
         <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-          {isSummaryMode ? (
-            <>
-              <Button
-                variant="outlined"
-                onClick={async () => {
-                  setActionError(null);
-                  setActivating(true);
+          <Button
+            variant="outlined"
+            onClick={async () => {
+              setActionError(null);
+              setActivating(true);
 
-                  try {
-                    await activateBasket();
-                  } catch (err: any) {
-                    setActionError(err?.message ?? 'Unable to edit basket.');
-                  } finally {
-                    setActivating(false);
-                  }
-                }}
-                disabled={basketLoading || activating || paying}
-              >
-                Edit basket
-              </Button>
-              <Button
-                variant="contained"
-                onClick={async () => {
-                  setActionError(null);
-                  setPaying(true);
+              try {
+                await payBasket();
+              } catch (err: any) {
+                setActionError(err?.message ?? 'Unable to edit address.');
+              } finally {
+                setActivating(false);
+              }
+            }}
+            disabled={basketLoading || activating || paying}
+          >
+            Edit address
+          </Button>
+          <Button
+            variant="contained"
+            onClick={async () => {
+              setActionError(null);
+              setPaying(true);
 
-                  try {
-                    const checkoutUrl = await payOrder();
-                    window.location.href = checkoutUrl;
-                  } catch (err: any) {
-                    setActionError(err?.message ?? 'Unable to start checkout.');
-                  } finally {
-                    setPaying(false);
-                  }
-                }}
-                disabled={basketLoading || paying || activating}
-              >
-                Pay order
-              </Button>
-            </>
-          ) : (
-            <Button
-              variant="contained"
-              onClick={async () => {
-                setActionError(null);
-                setPaying(true);
-
-                try {
-                  await payBasket();
-                } catch (err: any) {
-                  setActionError(err?.message ?? 'Unable to review details.');
-                } finally {
-                  setPaying(false);
-                }
-              }}
-              disabled={!isEditable || basketLoading || paying || !isBasketReadyForReview}
-            >
-              Review Details
-            </Button>
-          )}
+              try {
+                const checkoutUrl = await payOrder();
+                window.location.href = checkoutUrl;
+              } catch (err: any) {
+                setActionError(err?.message ?? 'Unable to start checkout.');
+              } finally {
+                setPaying(false);
+              }
+            }}
+            disabled={basketLoading || paying || activating}
+          >
+            Pay order
+          </Button>
         </Box>
       )}
 
       {!basketError && isAddressMode && (
         <Box sx={{ mb: 4 }}>
+          {basketSummaryCompact()}
           <Typography variant="h6" gutterBottom>
             Step 2 - Shipping address
           </Typography>
@@ -328,13 +358,11 @@ function BasketPage() {
         </Box>
       )}
 
-      {!basketError && hasItems && (
+      {!basketError && hasItems && isEditable && (
         <List>
           {basketItems.map(item => {
             const currentPrintSizeId = item.printSizeId;
             const selectedPrintSize = printSizeOptions.find(size => size.id === currentPrintSizeId) ?? printSizeOptions[0];
-            const currentPriceId = item.priceId ?? selectedPrintSize?.prices[0]?.id;
-            const itemPrices = selectedPrintSize?.prices ?? [];
 
             return (
               <React.Fragment key={`${item.orderId}-${item.artworkId}`}>
@@ -382,54 +410,34 @@ function BasketPage() {
                         </Typography>
                       </Box>
                     ) : (
-                      <>
-                        <FormControl sx={{ minWidth: 180 }} size="small">
-                          <InputLabel id={`print-size-label-${item.artworkId}`}>Print Size</InputLabel>
-                          <Select
-                            labelId={`print-size-label-${item.artworkId}`}
-                            value={currentPrintSizeId ?? ''}
-                            label="Print Size"
-                            onChange={async event => {
-                              const newPrintSizeId = Number(event.target.value);
-                              const selectedSize = printSizeOptions.find(size => size.id === newPrintSizeId);
-                              const newPriceId = selectedSize?.prices[0]?.id;
-
-                              await handleItemUpdate(item.artworkId, item.quantity, newPrintSizeId, newPriceId);
-                            }}
-                            disabled={!isEditable || basketLoading || updatingItemIds[item.artworkId]}
-                          >
-                            {printSizeOptions.map(size => (
-                              <MenuItem key={size.id} value={size.id}>
-                                {size.name}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                        <FormControl sx={{ minWidth: 180 }} size="small">
-                          <InputLabel id={`price-label-${item.artworkId}`}>Price</InputLabel>
-                          <Select
-                            labelId={`price-label-${item.artworkId}`}
-                            value={currentPriceId ?? ''}
-                            label="Price"
-                            onChange={async event => {
-                              const newPriceId = Number(event.target.value);
-                              await handleItemUpdate(item.artworkId, item.quantity, selectedPrintSize?.id, newPriceId);
-                            }}
-                            disabled={!isEditable || basketLoading || updatingItemIds[item.artworkId] || itemPrices.length === 0}
-                          >
-                            {itemPrices.map(price => (
-                              <MenuItem key={price.id} value={price.id}>
-                                {price.value.toFixed(2)}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                        {item.priceValue != null && (
-                          <Typography sx={{ alignSelf: 'center' }}>
-                            Selected price: {item.priceValue.toFixed(2)}
-                          </Typography>
-                        )}
-                      </>
+                      <FormControl component="fieldset" sx={{ width: '100%' }}>
+                        <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                          Select print size
+                        </Typography>
+                        <RadioGroup
+                          value={currentPrintSizeId != null ? String(currentPrintSizeId) : ''}
+                          onChange={async event => {
+                            const newPrintSizeId = Number(event.target.value);
+                            const selectedSize = printSizeOptions.find(size => size.id === newPrintSizeId);
+                            const newPriceId = selectedSize?.prices[0]?.id;
+                            await handleItemUpdate(item.artworkId, item.quantity, newPrintSizeId, newPriceId);
+                          }}
+                        >
+                          {printSizeOptions.map(size => {
+                            const price = size.prices[0];
+                            const label = price ? `${size.name} - ${price.value.toFixed(2)}` : size.name;
+                            return (
+                              <FormControlLabel
+                                key={size.id}
+                                value={String(size.id)}
+                                control={<Radio />}
+                                label={label}
+                                disabled={!isEditable || basketLoading || updatingItemIds[item.artworkId] || !price}
+                              />
+                            );
+                          })}
+                        </RadioGroup>
+                      </FormControl>
                     )}
                   </Box>
                 </ListItem>
@@ -438,6 +446,29 @@ function BasketPage() {
             );
           })}
         </List>
+      )}
+
+      {!basketError && hasItems && isEditable && (
+        <Box sx={{ mt: 2, mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
+          <Button
+            variant="contained"
+            onClick={async () => {
+              setActionError(null);
+              setPaying(true);
+
+              try {
+                await payBasket();
+              } catch (err: any) {
+                setActionError(err?.message ?? 'Unable to review details.');
+              } finally {
+                setPaying(false);
+              }
+            }}
+            disabled={basketLoading || paying || !isBasketReadyForReview}
+          >
+            Continue
+          </Button>
+        </Box>
       )}
     </Container>
   );
