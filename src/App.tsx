@@ -23,6 +23,7 @@ import ArtworkDetailsPage from './pages/ArtworkDetailsPage';
 import BasketPage from './pages/BasketPage';
 import OrdersPage from './pages/OrdersPage';
 import AdminPage from './pages/AdminPage';
+import MyAccountPage from './pages/MyAccountPage';
 import InviteRegisterRedirectPage from './pages/InviteRegisterRedirectPage';
 import PortalLayout from './components/PortalLayout';
 import PortalHomePage from './pages/PortalHomePage';
@@ -145,6 +146,7 @@ function App() {
 
       <Route path="portal" element={<PortalLayout />}>
         <Route index element={<PortalHomePage />} />
+        <Route path="my-account" element={<MyAccountPage />} />
         <Route path="my-works" element={<MyWorksPage />} />
         <Route path="my-works/:id" element={<ArtworkDetailsPage />} />
         <Route path="admin" element={<AdminPage />} />

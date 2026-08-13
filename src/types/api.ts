@@ -7,6 +7,15 @@ export interface CurrentUser {
   roles?: string[];
 }
 
+export interface UserProfile {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  roles: string[];
+  isActive: boolean;
+}
+
 export interface ArtworkDto {
   id: string;
   creatorId: string;
