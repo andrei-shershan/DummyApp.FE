@@ -1,22 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import { useAppContext } from '../context/AppContext';
 import { getCurrentUserProfile } from '../api/users';
 import { UserProfile } from '../types/api';
 
-function PortalHomePage() {
-  const navigate = useNavigate();
+function MyAccountPage() {
   const { user } = useAppContext();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const isAdmin = user?.roles?.includes('Admin');
-  const isCreator = user?.roles?.includes('Creator');
 
   useEffect(() => {
     let isMounted = true;
@@ -51,45 +45,30 @@ function PortalHomePage() {
   return (
     <Container maxWidth="lg" sx={{ pt: 3, pb: 4 }}>
       <Typography variant="h4" gutterBottom>
-        Admin Portal
+        My Account
       </Typography>
       <Typography variant="body1" paragraph>
-        This portal is for administrators and creators. Use it to manage artworks, users, and portal-specific tasks.
+        Manage your profile information and account settings.
       </Typography>
 
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
-        {isCreator || isAdmin ? (
-          <Button variant="contained" onClick={() => navigate('/portal/my-works')}>
-            MyArtworks
-          </Button>
-        ) : null}
-        {isAdmin ? (
-          <Button variant="outlined" onClick={() => navigate('/portal/admin')}>
-            Admin Panel
-          </Button>
-        ) : null}
-      </Box>
-
-      <Typography variant="subtitle1">Account</Typography>
       {loading ? (
-        <Typography>Loading profile...</Typography>
+        <Typography>Loading account details...</Typography>
       ) : error ? (
         <Typography color="error">{error}</Typography>
       ) : profile ? (
-        <>
-          <Typography>
-            Signed in as <strong>{profile.email}</strong>.
-          </Typography>
-          <Typography>
-            Name: <strong>{profile.firstName} {profile.lastName}</strong>
-          </Typography>
-          {profile.roles && <Typography>Roles: {profile.roles.join(', ')}</Typography>}
-        </>
+        <Box>
+          <Typography variant="subtitle1">Account information</Typography>
+          <Typography>Email: {profile.email}</Typography>
+          <Typography>First name: {profile.firstName}</Typography>
+          <Typography>Last name: {profile.lastName}</Typography>
+          <Typography>Roles: {profile.roles.join(', ')}</Typography>
+          <Typography>Status: {profile.isActive ? 'Active' : 'Inactive'}</Typography>
+        </Box>
       ) : (
-        <Typography>Unable to load profile.</Typography>
+        <Typography>Unable to load account details.</Typography>
       )}
     </Container>
   );
 }
 
-export default PortalHomePage;
+export default MyAccountPage;

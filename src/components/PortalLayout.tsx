@@ -76,6 +76,11 @@ function PortalLayout() {
     ];
 
     if (isAuthenticated) {
+      items.push({
+        label: 'My Account',
+        onClick: () => navigate('/portal/my-account'),
+      });
+
       if (isCreator || isAdmin) {
         items.push({
           label: 'MyArtworks',
