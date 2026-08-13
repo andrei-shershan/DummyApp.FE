@@ -2,12 +2,10 @@ import React, { useEffect, useState } from 'react';
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import { useAppContext } from '../context/AppContext';
 import { getCurrentUserProfile } from '../api/users';
 import { UserProfile } from '../types/api';
 
 function MyAccountPage() {
-  const { user } = useAppContext();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
