@@ -34,6 +34,12 @@ export async function getBasketSummary(): Promise<BasketSummaryDto | null> {
   return (await response.json()) as BasketSummaryDto;
 }
 
+export async function clearBasketCookie(): Promise<void> {
+  await fetchClient<void>('/api/basket/cookie', {
+    method: 'DELETE',
+  });
+}
+
 export async function getBasketPrintSizes(): Promise<PrintSizeDto[]> {
   return fetchClient<PrintSizeDto[]>('/api/basket/print-sizes');
 }

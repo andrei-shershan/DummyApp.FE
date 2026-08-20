@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
@@ -13,19 +13,7 @@ import { useAppContext } from '../context/AppContext';
 import PageLoadingOverlay from '../components/PageLoadingOverlay';
 
 function OrdersPage() {
-  const { basketItems, basketLoading, basketError, basketStatus, refreshBasketItems } = useAppContext();
-  const [hasFetchedOrder, setHasFetchedOrder] = useState(false);
-
-  useEffect(() => {
-    if (hasFetchedOrder) {
-      return;
-    }
-
-    setHasFetchedOrder(true);
-    refreshBasketItems().catch(() => {
-      // error is handled in context state
-    });
-  }, [hasFetchedOrder, refreshBasketItems]);
+  const { basketItems, basketLoading, basketError, basketStatus } = useAppContext();
 
   const totalItems = basketItems.reduce((sum, item) => sum + item.quantity, 0);
   const totalAmount = basketItems.reduce((sum, item) => sum + ((item.priceValue ?? 0) * item.quantity), 0);
