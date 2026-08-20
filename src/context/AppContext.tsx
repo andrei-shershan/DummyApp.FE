@@ -4,7 +4,7 @@ import { getCurrentUser } from '../api/auth';
 import { createArtwork as createArtworkApi, getArtworkById, getArtworks, toggleArtworkActive as toggleArtworkActiveApi } from '../api/artworks';
 import { getAdminUsers, getRoles, getPrintSizes, toggleUserActive as toggleUserActiveApi } from '../api/admin';
 import { sendInvite as sendInviteApi } from '../api/invite';
-import { getBasketSummary, getBasketAddress, saveBasketAddress as saveBasketAddressApi, continueBasket as continueBasketApi, reviewBasket as reviewBasketApi, activateBasket as activateBasketApi, updateBasketItemQuantity as updateBasketItemQuantityApi } from '../api/basket';
+import { getBasketSummary, getBasketAddress, saveBasketAddress as saveBasketAddressApi, continueBasket as continueBasketApi, reviewBasket as reviewBasketApi, activateBasket as activateBasketApi, updateBasketItemQuantity as updateBasketItemQuantityApi, clearBasketCookie } from '../api/basket';
 import { checkoutBasket } from '../api/payment';
 
 interface AppContextState {
@@ -131,6 +131,15 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
     }
   }, [selectedArtwork]);
 
+  const isTerminalBasketStatus = (status: string | null): boolean => {
+    if (!status) {
+      return false;
+    }
+
+    const terminalStatuses = ['completed'];
+    return terminalStatuses.includes(status.toLowerCase());
+  };
+
   const refreshBasketItems = useCallback(async () => {
     setBasketLoading(true);
     setBasketError(null);
@@ -138,6 +147,17 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
     try {
       const summary = await getBasketSummary();
       if (summary === null) {
+        setBasketItems([]);
+        setBasketStatus(null);
+        setBasketAddress(null);
+        setBasketCount(0);
+      } else if (isTerminalBasketStatus(summary.status)) {
+        try {
+          await clearBasketCookie();
+        } catch {
+          // If cookie cleanup fails, still clear local basket state.
+        }
+
         setBasketItems([]);
         setBasketStatus(null);
         setBasketAddress(null);
