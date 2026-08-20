@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
+import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import List from '@mui/material/List';
@@ -11,9 +12,17 @@ import Avatar from '@mui/material/Avatar';
 import Divider from '@mui/material/Divider';
 import { useAppContext } from '../context/AppContext';
 import PageLoadingOverlay from '../components/PageLoadingOverlay';
+import { sendVerificationCode, verifyVerificationCode } from '../api/verification';
 
 function OrdersPage() {
   const { basketItems, basketLoading, basketError, basketStatus } = useAppContext();
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
+  const [verificationSent, setVerificationSent] = useState(false);
+  const [verified, setVerified] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
   const totalItems = basketItems.reduce((sum, item) => sum + item.quantity, 0);
   const totalAmount = basketItems.reduce((sum, item) => sum + ((item.priceValue ?? 0) * item.quantity), 0);
@@ -28,6 +37,107 @@ function OrdersPage() {
       ? 'This order is active and ready for checkout.'
       : `Order status is ${basketStatus}.`
     : 'No order summary is available yet.';
+
+  useEffect(() => {
+    const completedOrdersCookie = document.cookie
+      .split(';')
+      .map(cookie => cookie.trim())
+      .find(cookie => cookie.startsWith('CompletedOrders='));
+
+    if (completedOrdersCookie) {
+      setVerified(true);
+    }
+  }, []);
+
+  const handleSendVerification = async () => {
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    if (!email || !email.includes('@')) {
+      setErrorMessage('Please enter a valid email address.');
+      return;
+    }
+
+    setSubmitLoading(true);
+    try {
+      await sendVerificationCode(email);
+      setVerificationSent(true);
+      setInfoMessage('Verification code has been sent to your email. Please enter the code below.');
+    } catch (error: any) {
+      setErrorMessage(error?.message ?? 'Unable to send verification code.');
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    if (!code || code.length !== 6) {
+      setErrorMessage('Please enter the 6-digit verification code.');
+      return;
+    }
+
+    setSubmitLoading(true);
+    try {
+      await verifyVerificationCode(email, code);
+      setVerified(true);
+      setInfoMessage('Verification successful. You can now view your orders.');
+    } catch (error: any) {
+      setErrorMessage(error?.message ?? 'Unable to verify the code.');
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
+  if (!verified) {
+    return (
+      <Container maxWidth="lg" sx={{ pt: 3, pb: 4, position: 'relative' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 520, mx: 'auto', pt: 4 }}>
+          <Typography variant="h4">Completed orders verification</Typography>
+          <Typography color="text.secondary">
+            To view your completed orders, please enter the email address where we can send a verification code.
+          </Typography>
+
+          {infoMessage && (
+            <Typography color="success.main">{infoMessage}</Typography>
+          )}
+
+          {errorMessage && (
+            <Typography color="error">{errorMessage}</Typography>
+          )}
+
+          <TextField
+            label="Email"
+            value={email}
+            type="email"
+            disabled={submitLoading || verificationSent}
+            onChange={event => setEmail(event.target.value)}
+            fullWidth
+          />
+
+          {verificationSent && (
+            <TextField
+              label="Verification code"
+              value={code}
+              onChange={event => setCode(event.target.value)}
+              fullWidth
+              inputProps={{ maxLength: 6 }}
+            />
+          )}
+
+          <Button
+            variant="contained"
+            onClick={verificationSent ? handleVerifyCode : handleSendVerification}
+            disabled={submitLoading || (verificationSent ? !code : !email)}
+          >
+            {verificationSent ? 'Verify code' : 'Send verification code'}
+          </Button>
+        </Box>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="lg" sx={{ pt: 3, pb: 4, position: 'relative' }}>
