@@ -4,6 +4,17 @@ interface FetchOptions extends RequestInit {
   data?: unknown;
 }
 
+class HttpError extends Error {
+  public readonly statusCode: number;
+  public readonly response: Response;
+
+  constructor(message: string, statusCode: number, response: Response) {
+    super(message);
+    this.statusCode = statusCode;
+    this.response = response;
+  }
+}
+
 async function parseJson(response: Response) {
   const text = await response.text();
   if (!text) {
@@ -37,12 +48,12 @@ export async function fetchClient<T>(path: string, options: FetchOptions = {}): 
     if (response.status === 401 || response.status === 403) {
       const loginUrl = `${BFF_HOST}/login?returnUrl=${encodeURIComponent(window.location.href)}`;
       window.location.replace(loginUrl);
-      throw new Error('Authentication required. Redirecting to login.');
+      throw new HttpError('Authentication required. Redirecting to login.', response.status, response);
     }
 
     const errorPayload = await parseJson(response).catch(() => null);
     const message = errorPayload?.message || response.statusText || 'Unexpected error from server.';
-    throw new Error(message);
+    throw new HttpError(message, response.status, response);
   }
 
   return (await parseJson(response)) as T;
