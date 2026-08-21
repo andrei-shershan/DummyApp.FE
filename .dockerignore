@@ -1,0 +1,18 @@
+# Exclude build artifacts, local dependencies and editor files
+node_modules
+build
+.git
+.gitignore
+.vscode
+.vs
+npm-debug.log*
+Dockerfile*
+*.log
+.DS_Store
+.env*
+coverage
+pipelines
+.github
+README.md
+**/node_modules
+**/build

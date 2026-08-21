@@ -3,7 +3,9 @@ FROM node:20-alpine AS build
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
-COPY . .
+COPY public ./public
+COPY src ./src
+COPY tsconfig.json ./
 RUN npm run build
 
 # Serve the built app with nginx
