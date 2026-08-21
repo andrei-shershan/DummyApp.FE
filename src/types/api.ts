@@ -76,6 +76,14 @@ export interface BasketSummaryDto {
   address?: OrderAddressDto;
 }
 
+export interface OrderSummaryDto {
+  orderId: string;
+  items: BasketItemDto[];
+  status: string;
+  email: string;
+  address?: OrderAddressDto;
+}
+
 export interface PriceDto {
   id: number;
   printSizeId: number;
