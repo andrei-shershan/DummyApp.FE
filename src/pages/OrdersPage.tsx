@@ -22,14 +22,9 @@ function OrdersPage() {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [verificationSent, setVerificationSent] = useState(false);
-  const [verified, setVerified] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
-
-  const totalItems = completedOrders.reduce((sum, order) => sum + order.items.reduce((itemSum, item) => itemSum + item.quantity, 0), 0);
-  const totalAmount = completedOrders.reduce((sum, order) => sum + order.items.reduce((itemSum, item) => itemSum + ((item.priceValue ?? 0) * item.quantity), 0), 0);
-  const totalOrders = completedOrders.length;
 
   const loadCompletedOrders = async () => {
     setCompletedLoading(true);
@@ -83,7 +78,6 @@ function OrdersPage() {
     setSubmitLoading(true);
     try {
       await verifyVerificationCode(email, code);
-      setVerified(true);
       setInfoMessage('Verification successful. You can now view your orders.');
       void loadCompletedOrders();
     } catch (error: any) {
