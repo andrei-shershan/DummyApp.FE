@@ -8,12 +8,14 @@ import { useAppContext } from '../context/AppContext';
 import ArtworkCard from '../components/ArtworkCard';
 import ArtworkUploadForm from '../components/ArtworkUploadForm';
 import { getArtworkPrerequisites } from '../api/artworks';
+import { TagGroupDto } from '../types/api';
 
 function MyWorksPage() {
   const navigate = useNavigate();
   const { user, artworks, loading, error, refreshArtworks } = useAppContext();
   const [prerequisiteLoading, setPrerequisiteLoading] = useState(true);
   const [prerequisiteError, setPrerequisiteError] = useState<string | null>(null);
+  const [prerequisites, setPrerequisites] = useState<TagGroupDto[]>([]);
   const creatorId = user?.id ?? user?.sub;
 
   useEffect(() => {
@@ -30,7 +32,10 @@ function MyWorksPage() {
       setPrerequisiteError(null);
 
       try {
-        await getArtworkPrerequisites();
+        const data = await getArtworkPrerequisites();
+        if (mounted) {
+          setPrerequisites(data);
+        }
       } catch (err: any) {
         if (!mounted) {
           return;
@@ -80,7 +85,7 @@ function MyWorksPage() {
       <Typography variant="h4" gutterBottom>
         My Works
       </Typography>
-      <ArtworkUploadForm />
+      <ArtworkUploadForm prerequisites={prerequisites} />
       {loading && <Typography>Loading your artworks...</Typography>}
       {prerequisiteError && <Typography color="error">{prerequisiteError}</Typography>}
       {error && <Typography color="error">{error}</Typography>}
