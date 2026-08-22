@@ -99,6 +99,17 @@ export interface AdminUserDto {
   isActive: boolean;
 }
 
+export interface TagDto {
+  id: string;
+  name: string;
+  type: string;
+}
+
+export interface TagGroupDto {
+  tagType: string;
+  tags: TagDto[];
+}
+
 export interface RoleDto {
   id: string;
   name: string;
