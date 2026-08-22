@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
@@ -6,31 +6,26 @@ import CardContent from '@mui/material/CardContent';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { useAppContext } from '../context/AppContext';
-import { SeriesDto } from '../types/api';
-import { getArtworkSeries } from '../api/artworks';
 
 interface ArtworkFormData {
   name: string;
   description: string;
   creationDate: string;
-  seriesName: string;
   uploadedImage: string | null;
   fileName: string | null;
   fileType: string | null;
 }
 
 function ArtworkUploadForm() {
-  const { createArtwork, user } = useAppContext();
+  const { createArtwork } = useAppContext();
   const [form, setForm] = useState<ArtworkFormData>({
     name: '',
     description: '',
     creationDate: new Date().toISOString().split('T')[0],
-    seriesName: '',
     uploadedImage: null,
     fileName: null,
     fileType: null,
   });
-  const [seriesList, setSeriesList] = useState<SeriesDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState<string>('');
   const [error, setError] = useState<string>('');
@@ -55,24 +50,6 @@ function ArtworkUploadForm() {
     reader.readAsDataURL(file);
   };
 
-  useEffect(() => {
-    async function loadSeries() {
-      if (!user?.id && !user?.sub) {
-        return;
-      }
-
-      try {
-        const creatorId = user.id || user.sub!;
-        const series = await getArtworkSeries(creatorId);
-        setSeriesList(series);
-      } catch {
-        // ignore series load failure for now
-      }
-    }
-
-    loadSeries();
-  }, [user]);
-
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
@@ -86,10 +63,9 @@ function ArtworkUploadForm() {
         creationDate: new Date(form.creationDate).toISOString(),
         uploadedImage: form.uploadedImage,
         fileName: form.fileName,
-        seriesName: form.seriesName,
       });
       setSuccess('Artwork created successfully.');
-      setForm({ name: '', description: '', creationDate: new Date().toISOString().split('T')[0], seriesName: '', uploadedImage: null, fileName: null, fileType: null });
+      setForm({ name: '', description: '', creationDate: new Date().toISOString().split('T')[0], uploadedImage: null, fileName: null, fileType: null });
     } catch (err: any) {
       setError(err?.message ?? 'Unable to create artwork.');
     } finally {
@@ -127,22 +103,6 @@ function ArtworkUploadForm() {
             onChange={e => setForm(prev => ({ ...prev, creationDate: e.target.value }))}
             fullWidth
           />
-          <TextField
-            label="Series Name"
-            value={form.seriesName}
-            onChange={e => setForm(prev => ({ ...prev, seriesName: e.target.value }))}
-            fullWidth
-            InputProps={{
-              inputProps: {
-                list: 'series-list',
-              },
-            }}
-          />
-          <datalist id="series-list">
-            {seriesList.map(series => (
-              <option key={series.id} value={series.name} />
-            ))}
-          </datalist>
           <Button variant="outlined" component="label" sx={{ alignSelf: 'flex-start' }}>
             Upload Image
             <input hidden accept="image/*" type="file" onChange={handleFileChange} />
