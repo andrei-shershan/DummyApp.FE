@@ -28,12 +28,19 @@ export interface ArtworkDto {
   isActive: boolean;
 }
 
+export interface NewTagRequest {
+  name: string;
+  type: 'None' | 'Series';
+}
+
 export interface ArtworkCreateRequest {
   name: string;
   description?: string;
   creationDate: string;
   uploadedImage?: string | null;
   fileName?: string | null;
+  existingTagIds?: string[];
+  newTags?: NewTagRequest[];
 }
 
 export interface BasketItemDto {
