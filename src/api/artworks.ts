@@ -1,4 +1,4 @@
-import { ArtworkDto, ArtworkCreateRequest } from '../types/api';
+import { ArtworkDto, ArtworkCreateRequest, TagGroupDto } from '../types/api';
 import { fetchClient } from './fetchClient';
 
 export async function getArtworks(creatorId?: string, isActive = true): Promise<ArtworkDto[]> {
@@ -9,6 +9,10 @@ export async function getArtworks(creatorId?: string, isActive = true): Promise<
   params.append('isActive', String(isActive));
 
   return fetchClient<ArtworkDto[]>(`/api/artworks?${params.toString()}`);
+}
+
+export async function getArtworkPrerequisites(): Promise<TagGroupDto[]> {
+  return fetchClient<TagGroupDto[]>('/api/artworks/pre-requisit');
 }
 
 export async function getArtworkById(id: string, activeOnly = true): Promise<ArtworkDto> {
