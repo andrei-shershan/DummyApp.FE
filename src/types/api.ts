@@ -33,6 +33,18 @@ export interface ArtworkDto {
   isActive: boolean;
 }
 
+export interface ArtworkAuthorDto {
+  id: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+}
+
+export interface ArtworkFiltersDto {
+  tagGroups: TagGroupDto[];
+  authors: ArtworkAuthorDto[];
+}
+
 export interface NewTagRequest {
   name: string;
   type: 'None' | 'Series';

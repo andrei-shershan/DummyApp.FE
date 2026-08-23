@@ -15,7 +15,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import FormGroup from '@mui/material/FormGroup';
 import ArtworkCard from '../components/ArtworkCard';
 import { getArtworksPage, getArtworkFilters } from '../api/artworks';
-import { ArtworkDto, TagGroupDto } from '../types/api';
+import { ArtworkAuthorDto, ArtworkDto, TagGroupDto } from '../types/api';
 
 function ArtworksPage() {
   const navigate = useNavigate();
@@ -26,13 +26,16 @@ function ArtworksPage() {
   const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
   const [filters, setFilters] = useState<TagGroupDto[]>([]);
+  const [authors, setAuthors] = useState<ArtworkAuthorDto[]>([]);
+  const [selectedAuthorId, setSelectedAuthorId] = useState<string>('');
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
 
   useEffect(() => {
     async function loadFilters() {
       try {
         const filterResult = await getArtworkFilters();
-        setFilters(filterResult);
+        setFilters(filterResult.tagGroups);
+        setAuthors(filterResult.authors);
       } catch (err: any) {
         setError(err?.message ?? 'Unable to load artwork filters.');
       }
@@ -47,7 +50,7 @@ function ArtworksPage() {
       setError(null);
 
       try {
-        const pageResult = await getArtworksPage(undefined, true, pageNumber, pageSize, selectedTagIds);
+        const pageResult = await getArtworksPage(selectedAuthorId || undefined, true, pageNumber, pageSize, selectedTagIds);
         setArtworks(pageResult.items);
         setTotalCount(pageResult.totalCount);
       } catch (err: any) {
@@ -60,7 +63,7 @@ function ArtworksPage() {
     }
 
     loadArtworksPage();
-  }, [pageNumber, pageSize, selectedTagIds]);
+  }, [pageNumber, pageSize, selectedTagIds, selectedAuthorId]);
 
   const pageSizes = [10, 20, 50, 100];
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
@@ -74,9 +77,15 @@ function ArtworksPage() {
     );
   };
 
-  const clearTagFilters = () => {
+  const clearFilters = () => {
     setPageNumber(1);
     setSelectedTagIds([]);
+    setSelectedAuthorId('');
+  };
+
+  const toggleAuthorSelection = (authorId: string) => {
+    setPageNumber(1);
+    setSelectedAuthorId(prev => (prev === authorId ? '' : authorId));
   };
 
   return (
@@ -91,15 +100,37 @@ function ArtworksPage() {
               Filters
             </Typography>
             <Typography variant="body2" color="textSecondary">
-              Select tags to narrow the artwork list. Multiple tags are combined with AND semantics.
+              Select tags and author to narrow the artwork list. Multiple tags are combined with AND semantics.
             </Typography>
           </Box>
-          <Button variant="outlined" size="small" onClick={clearTagFilters} disabled={selectedTagIds.length === 0}>
-            No Filters
+          <Button variant="outlined" size="small" onClick={clearFilters} disabled={selectedTagIds.length === 0 && !selectedAuthorId}>
+            Clear Filters
           </Button>
         </Stack>
 
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mt: 2 }}>
+          <Box sx={{ minWidth: 240, flex: 1 }}>
+            <Typography variant="subtitle1" sx={{ mb: 1 }}>
+              Author
+            </Typography>
+            <FormControl component="fieldset" variant="standard">
+              <FormGroup>
+                {authors.map(author => (
+                  <FormControlLabel
+                    key={author.id}
+                    control={
+                      <Checkbox
+                        checked={selectedAuthorId === author.id}
+                        onChange={() => toggleAuthorSelection(author.id)}
+                        name={author.fullName}
+                      />
+                    }
+                    label={author.fullName}
+                  />
+                ))}
+              </FormGroup>
+            </FormControl>
+          </Box>
           {filters.map(group => (
             <Box key={group.tagType} sx={{ minWidth: 220, flex: 1 }}>
               <Typography variant="subtitle1" sx={{ mb: 1 }}>
