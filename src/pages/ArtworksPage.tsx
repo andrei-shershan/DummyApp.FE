@@ -7,9 +7,15 @@ import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Pagination from '@mui/material/Pagination';
 import Stack from '@mui/material/Stack';
+import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
+import Checkbox from '@mui/material/Checkbox';
+import FormControl from '@mui/material/FormControl';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormGroup from '@mui/material/FormGroup';
 import ArtworkCard from '../components/ArtworkCard';
-import { getArtworksPage } from '../api/artworks';
-import { ArtworkDto } from '../types/api';
+import { getArtworksPage, getArtworkFilters } from '../api/artworks';
+import { ArtworkDto, TagGroupDto } from '../types/api';
 
 function ArtworksPage() {
   const navigate = useNavigate();
@@ -19,6 +25,21 @@ function ArtworksPage() {
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
+  const [filters, setFilters] = useState<TagGroupDto[]>([]);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    async function loadFilters() {
+      try {
+        const filterResult = await getArtworkFilters();
+        setFilters(filterResult);
+      } catch (err: any) {
+        setError(err?.message ?? 'Unable to load artwork filters.');
+      }
+    }
+
+    loadFilters();
+  }, []);
 
   useEffect(() => {
     async function loadArtworksPage() {
@@ -26,7 +47,7 @@ function ArtworksPage() {
       setError(null);
 
       try {
-        const pageResult = await getArtworksPage(undefined, true, pageNumber, pageSize);
+        const pageResult = await getArtworksPage(undefined, true, pageNumber, pageSize, selectedTagIds);
         setArtworks(pageResult.items);
         setTotalCount(pageResult.totalCount);
       } catch (err: any) {
@@ -39,18 +60,72 @@ function ArtworksPage() {
     }
 
     loadArtworksPage();
-  }, [pageNumber, pageSize]);
+  }, [pageNumber, pageSize, selectedTagIds]);
 
   const pageSizes = [10, 20, 50, 100];
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const startIndex = totalCount === 0 ? 0 : (pageNumber - 1) * pageSize + 1;
   const endIndex = Math.min(totalCount, pageNumber * pageSize);
 
+  const toggleTagSelection = (tagId: string) => {
+    setPageNumber(1);
+    setSelectedTagIds(prev =>
+      prev.includes(tagId) ? prev.filter(id => id !== tagId) : [...prev, tagId]
+    );
+  };
+
+  const clearTagFilters = () => {
+    setPageNumber(1);
+    setSelectedTagIds([]);
+  };
+
   return (
     <Container maxWidth="lg" sx={{ pt: 3, pb: 4 }}>
       <Typography variant="h4" gutterBottom>
         Artworks
       </Typography>
+      <Paper sx={{ p: 2, mb: 3 }} elevation={1}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="flex-start" spacing={2}>
+          <Box>
+            <Typography variant="h6" gutterBottom>
+              Filters
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              Select tags to narrow the artwork list. Multiple tags are combined with AND semantics.
+            </Typography>
+          </Box>
+          <Button variant="outlined" size="small" onClick={clearTagFilters} disabled={selectedTagIds.length === 0}>
+            No Filters
+          </Button>
+        </Stack>
+
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mt: 2 }}>
+          {filters.map(group => (
+            <Box key={group.tagType} sx={{ minWidth: 220, flex: 1 }}>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                {group.tagType}
+              </Typography>
+              <FormControl component="fieldset" variant="standard">
+                <FormGroup>
+                  {group.tags.map(tag => (
+                    <FormControlLabel
+                      key={tag.id}
+                      control={
+                        <Checkbox
+                          checked={selectedTagIds.includes(tag.id)}
+                          onChange={() => toggleTagSelection(tag.id)}
+                          name={tag.name}
+                        />
+                      }
+                      label={tag.name}
+                    />
+                  ))}
+                </FormGroup>
+              </FormControl>
+            </Box>
+          ))}
+        </Stack>
+      </Paper>
 
       <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="center" spacing={2} sx={{ mb: 2 }}>
         <Typography variant="body1">
