@@ -51,6 +51,9 @@ function PortalLayout() {
       if (location.pathname.endsWith('/admin') && !isAdmin) {
         navigate('/portal', { replace: true });
       }
+      if (location.pathname.endsWith('/my-account') && !(isCreator || isAdmin)) {
+        navigate('/portal', { replace: true });
+      }
       if (location.pathname.endsWith('/my-works') && !(isCreator || isAdmin)) {
         navigate('/portal', { replace: true });
       }
@@ -76,10 +79,12 @@ function PortalLayout() {
     ];
 
     if (isAuthenticated) {
-      items.push({
-        label: 'My Account',
-        onClick: () => navigate('/portal/my-account'),
-      });
+      if (isCreator || isAdmin) {
+        items.push({
+          label: 'My Account',
+          onClick: () => navigate('/portal/my-account'),
+        });
+      }
 
       if (isCreator || isAdmin) {
         items.push({
