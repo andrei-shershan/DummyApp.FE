@@ -15,12 +15,16 @@ export async function getArtworkPrerequisites(): Promise<TagGroupDto[]> {
   return fetchClient<TagGroupDto[]>('/api/artworks/pre-requisit');
 }
 
+export async function getArtworkFilters(): Promise<TagGroupDto[]> {
+  return fetchClient<TagGroupDto[]>('/api/artworks/filters');
+}
+
 export async function getArtworkById(id: string, activeOnly = true): Promise<ArtworkDto> {
   const params = new URLSearchParams({ activeOnly: String(activeOnly) });
   return fetchClient<ArtworkDto>(`/api/artworks/${id}?${params.toString()}`);
 }
 
-export async function getArtworksPage(creatorId?: string, isActive = true, pageNumber = 1, pageSize = 10): Promise<PaginatedResult<ArtworkDto>> {
+export async function getArtworksPage(creatorId?: string, isActive = true, pageNumber = 1, pageSize = 10, tagIds?: string[]): Promise<PaginatedResult<ArtworkDto>> {
   const params = new URLSearchParams({
     isActive: String(isActive),
     pageNumber: String(pageNumber),
@@ -29,6 +33,10 @@ export async function getArtworksPage(creatorId?: string, isActive = true, pageN
 
   if (creatorId) {
     params.append('creatorId', creatorId);
+  }
+
+  if (tagIds?.length) {
+    tagIds.forEach(tagId => params.append('tagIds', tagId));
   }
 
   return fetchClient<PaginatedResult<ArtworkDto>>(`/api/artworks/page?${params.toString()}`);
