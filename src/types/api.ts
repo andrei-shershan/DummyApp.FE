@@ -16,6 +16,11 @@ export interface UserProfile {
   isActive: boolean;
 }
 
+export interface UpdateCurrentUserProfileRequest {
+  firstName: string;
+  lastName: string;
+}
+
 export interface ArtworkDto {
   id: string;
   creatorId: string;
