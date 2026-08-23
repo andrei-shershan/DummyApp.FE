@@ -121,3 +121,10 @@ export interface RoleDto {
   id: string;
   name: string;
 }
+
+export interface PaginatedResult<T> {
+  items: T[];
+  pageNumber: number;
+  pageSize: number;
+  totalCount: number;
+}

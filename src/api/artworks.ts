@@ -1,4 +1,4 @@
-import { ArtworkDto, ArtworkCreateRequest, TagGroupDto } from '../types/api';
+import { ArtworkDto, ArtworkCreateRequest, PaginatedResult, TagGroupDto } from '../types/api';
 import { fetchClient } from './fetchClient';
 
 export async function getArtworks(creatorId?: string, isActive = true): Promise<ArtworkDto[]> {
@@ -18,6 +18,20 @@ export async function getArtworkPrerequisites(): Promise<TagGroupDto[]> {
 export async function getArtworkById(id: string, activeOnly = true): Promise<ArtworkDto> {
   const params = new URLSearchParams({ activeOnly: String(activeOnly) });
   return fetchClient<ArtworkDto>(`/api/artworks/${id}?${params.toString()}`);
+}
+
+export async function getArtworksPage(creatorId?: string, isActive = true, pageNumber = 1, pageSize = 10): Promise<PaginatedResult<ArtworkDto>> {
+  const params = new URLSearchParams({
+    isActive: String(isActive),
+    pageNumber: String(pageNumber),
+    pageSize: String(pageSize),
+  });
+
+  if (creatorId) {
+    params.append('creatorId', creatorId);
+  }
+
+  return fetchClient<PaginatedResult<ArtworkDto>>(`/api/artworks/page?${params.toString()}`);
 }
 
 export async function toggleArtworkActive(id: string, isActive: boolean): Promise<ArtworkDto> {
