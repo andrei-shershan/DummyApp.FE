@@ -14,11 +14,18 @@ export interface UserProfile {
   lastName: string;
   roles: string[];
   isActive: boolean;
+  avatarUrl?: string | null;
+  avatarSmallUrl?: string | null;
 }
 
 export interface UpdateCurrentUserProfileRequest {
   firstName: string;
   lastName: string;
+}
+
+export interface UploadCurrentUserAvatarRequest {
+  fileName: string;
+  base64Image: string;
 }
 
 export interface ArtworkDto {
