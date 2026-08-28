@@ -51,6 +51,9 @@ function PortalLayout() {
       if (location.pathname.endsWith('/admin') && !isAdmin) {
         navigate('/portal', { replace: true });
       }
+      if (location.pathname.endsWith('/analytics') && !isAdmin) {
+        navigate('/portal', { replace: true });
+      }
       if (location.pathname.endsWith('/my-account') && !(isCreator || isAdmin)) {
         navigate('/portal', { replace: true });
       }
@@ -97,6 +100,11 @@ function PortalLayout() {
         items.push({
           label: 'Admin Panel',
           onClick: () => navigate('/portal/admin'),
+        });
+
+        items.push({
+          label: 'Analytics',
+          onClick: () => navigate('/portal/analytics'),
         });
       }
 

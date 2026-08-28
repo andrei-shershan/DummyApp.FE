@@ -146,6 +146,15 @@ export interface RoleDto {
   name: string;
 }
 
+export interface AnalyticsEventDto {
+  id: string;
+  orderId: string;
+  status: string;
+  email: string;
+  siteId: string;
+  eventTimestamp: string;
+}
+
 export interface PaginatedResult<T> {
   items: T[];
   pageNumber: number;

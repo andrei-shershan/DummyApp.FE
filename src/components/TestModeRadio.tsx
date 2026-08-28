@@ -41,7 +41,7 @@ function TestModeRadio({ isAuthenticated }: Props) {
       }
 
       const text = await response.text();
-      setResult(text || `Ответ получен: ${mode}`);
+      setResult(text || `Response received: ${mode}`);
     } catch (fetchError) {
       setError(fetchError instanceof Error ? fetchError.message : String(fetchError));
     } finally {
@@ -61,7 +61,7 @@ function TestModeRadio({ isAuthenticated }: Props) {
       });
 
       if (response.status === 401) {
-        throw new Error('Требуется авторизация (401). Войдите через кнопку "Войти".');
+        throw new Error('Authorization required (401). Please sign in with the "Sign In" button.');
       }
 
       if (!response.ok) {
@@ -103,7 +103,7 @@ function TestModeRadio({ isAuthenticated }: Props) {
 
   const radioSection = (
     <div>
-      <div style={{ marginBottom: '0.5rem', fontSize: '1rem' }}>Выберите режим:</div>
+      <div style={{ marginBottom: '0.5rem', fontSize: '1rem' }}>Select mode:</div>
       <label style={{ marginRight: '1rem', fontSize: '1rem' }}>
         <input type="radio" name="testMode" value="R" checked={mode === 'R'} onChange={() => setMode('R')} />
         {' '}R
@@ -131,25 +131,25 @@ function TestModeRadio({ isAuthenticated }: Props) {
       {/* testX – no auth required */}
       <div>
         <div style={{ marginBottom: '0.5rem', fontSize: '0.85rem', color: '#aaa' }}>
-          testX — без авторизации (client credentials, M2M)
+          testX — no auth required (client credentials, M2M)
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
           {radioSection}
           <button type="button" onClick={handleSubmit} disabled={loading} style={buttonStyle(loading)}>
-            {loading ? 'Запрос...' : 'Отправить testX'}
+            {loading ? 'Request...' : 'Send testX'}
           </button>
         </div>
         <div style={{ minWidth: '220px', textAlign: 'center', marginTop: '0.5rem' }}>
           {result ? <pre style={{ color: '#85e89d', fontSize: '0.8rem', textAlign: 'left' }}>{result}</pre> : null}
-          {error ? <div style={{ color: '#ffb3b3' }}>Ошибка: {error}</div> : null}
+          {error ? <div style={{ color: '#ffb3b3' }}>Error: {error}</div> : null}
         </div>
       </div>
 
       {/* testX2 – requires user auth */}
       <div>
         <div style={{ marginBottom: '0.5rem', fontSize: '0.85rem', color: isAuthenticated ? '#85e89d' : '#f97583' }}>
-          testX2 — требует авторизации пользователя (PKCE + BFF)
-          {!isAuthenticated && ' · Нажмите "Войти" выше'}
+          testX2 — requires user authorization (PKCE + BFF)
+          {!isAuthenticated && ' · Click "Sign In" above'}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
           <button
@@ -162,19 +162,19 @@ function TestModeRadio({ isAuthenticated }: Props) {
               background: loadingX2 ? '#3d6f8b' : (isAuthenticated ? '#85e89d' : '#444'),
             }}
           >
-            {loadingX2 ? 'Запрос...' : 'Отправить testX2'}
+            {loadingX2 ? 'Request...' : 'Send testX2'}
           </button>
         </div>
         <div style={{ minWidth: '220px', textAlign: 'center', marginTop: '0.5rem' }}>
           {resultX2 ? <pre style={{ color: '#85e89d', fontSize: '0.8rem', textAlign: 'left' }}>{resultX2}</pre> : null}
-          {errorX2 ? <div style={{ color: '#ffb3b3' }}>Ошибка: {errorX2}</div> : null}
+          {errorX2 ? <div style={{ color: '#ffb3b3' }}>Error: {errorX2}</div> : null}
         </div>
       </div>
 
       {/* Get Message – reads TestMessage from Key Vault via ApiGateway */}
       <div>
         <div style={{ marginBottom: '0.5rem', fontSize: '0.85rem', color: '#aaa' }}>
-          Get Message — читает TestMessage из Key Vault (через ApiGateway)
+          Get Message — reads TestMessage from Key Vault (via ApiGateway)
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <button
@@ -187,12 +187,12 @@ function TestModeRadio({ isAuthenticated }: Props) {
               background: loadingMessage ? '#3d6f8b' : '#e3b341',
             }}
           >
-            {loadingMessage ? 'Запрос...' : 'Get Message'}
+            {loadingMessage ? 'Request...' : 'Get Message'}
           </button>
         </div>
         <div style={{ minWidth: '220px', textAlign: 'center', marginTop: '0.5rem' }}>
           {message ? <div style={{ color: '#e3b341', fontSize: '0.95rem' }}>{message}</div> : null}
-          {errorMessage ? <div style={{ color: '#ffb3b3' }}>Ошибка: {errorMessage}</div> : null}
+          {errorMessage ? <div style={{ color: '#ffb3b3' }}>Error: {errorMessage}</div> : null}
         </div>
       </div>
 
