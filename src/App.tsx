@@ -27,6 +27,7 @@ import MyAccountPage from './pages/MyAccountPage';
 import InviteRegisterRedirectPage from './pages/InviteRegisterRedirectPage';
 import PortalLayout from './components/PortalLayout';
 import PortalHomePage from './pages/PortalHomePage';
+import AnalyticsPage from './pages/AnalyticsPage';
 
 const drawerWidth = 280;
 
@@ -150,6 +151,7 @@ function App() {
         <Route path="my-works" element={<MyWorksPage />} />
         <Route path="my-works/:id" element={<ArtworkDetailsPage />} />
         <Route path="admin" element={<AdminPage />} />
+        <Route path="analytics" element={<AnalyticsPage />} />
       </Route>
       <Route path="my-works" element={<Navigate to="/portal/my-works" replace />} />
       <Route path="my-works/:id" element={<Navigate to="/portal/my-works/:id" replace />} />

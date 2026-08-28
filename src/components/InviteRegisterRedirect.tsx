@@ -19,10 +19,10 @@ function InviteRegisterRedirect() {
 
   return (
     <div style={{ fontFamily: 'Segoe UI, Arial, Helvetica, sans-serif', padding: '2rem' }}>
-      <h2>Переход к регистрации...</h2>
-      <p>Если перенаправление не произошло автоматически, пожалуйста, нажмите на ссылку ниже:</p>
+      <h2>Redirecting to registration...</h2>
+      <p>If the redirect does not happen automatically, please click the link below:</p>
       <p>
-        <a href={identityUrl || '#'}>Перейти на страницу регистрации</a>
+        <a href={identityUrl || '#'}>Go to registration page</a>
       </p>
     </div>
   );
