@@ -87,6 +87,8 @@ function PublicLayout() {
     </Box>
   );
 
+  const isHome = location.pathname === '/';
+
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary', flexDirection: 'column' }}>
       <AppBar position="sticky" elevation={2}>
@@ -158,12 +160,25 @@ function PublicLayout() {
         </Drawer>
       </Box>
 
-      <Box component="main" sx={{ flexGrow: 1, px: 2, py: 3, display: 'flex', justifyContent: 'center' }}>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          px: 2,
+          py: isHome ? 0 : 3,
+          display: 'flex',
+          justifyContent: 'center',
+          backgroundImage: isHome ? 'url(/mainback.png)' : undefined,
+          backgroundRepeat: isHome ? 'no-repeat' : undefined,
+          backgroundPosition: isHome ? 'center bottom' : undefined,
+          backgroundSize: isHome ? 'auto' : undefined,
+        }}
+      >
         <Box sx={{ width: '100%', maxWidth: 800 }}>
           <Outlet />
         </Box>
       </Box>
-      <AppFooter />
+      <AppFooter sx={{ mt: isHome ? 0 : 4 }} />
     </Box>
   );
 }

@@ -171,10 +171,10 @@ function ArtworkDetailsPage() {
         </DialogTitle>
         <DialogContent sx={{ p: 0, backgroundColor: 'rgba(0,0,0,0.92)' }}>
           <Box sx={{ width: '100%', minHeight: '60vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            {selectedArtwork?.imgUrl ? (
+            {(selectedArtwork?.imgUrl || selectedArtwork?.thumbnailUrl) ? (
               <Box
                 component="img"
-                src={selectedArtwork.imgUrl}
+                src={selectedArtwork.imgUrl || selectedArtwork.thumbnailUrl}
                 alt={selectedArtwork.name}
                 sx={{ maxWidth: '100%', maxHeight: '85vh', objectFit: 'contain' }}
               />

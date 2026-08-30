@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import ButtonGroup from '@mui/material/ButtonGroup';
 import CircularProgress from '@mui/material/CircularProgress';
 import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
@@ -21,6 +23,7 @@ import { getBasketPrintSizes } from '../api/basket';
 import { OrderAddressDto, PrintSizeDto } from '../types/api';
 
 function BasketPage() {
+  const navigate = useNavigate();
   const { basketItems, basketLoading, basketError, basketStatus, basketAddress, payBasket, payOrder, activateBasket, saveBasketAddress, continueBasket, updateBasketItemQuantity } = useAppContext();
   const [actionError, setActionError] = useState<string | null>(null);
   const [updatingItemIds, setUpdatingItemIds] = useState<Record<string, boolean>>({});
@@ -46,10 +49,18 @@ function BasketPage() {
   const isBasketReadyForReview = hasItems && basketItems.every(item => item.printSizeId != null && item.priceId != null);
   const basketTotalPrice = basketItems.reduce((sum, item) => sum + ((item.priceValue ?? 0) * item.quantity), 0);
 
+  const truncateDescription = (text: string | null | undefined) => {
+    const value = text ?? '';
+    return value.length > 200 ? `${value.slice(0, 200).trimEnd()}...` : value;
+  };
+
   const basketSummaryCompact = () => (
     <Box sx={{ mb: 3, p: 2, border: '1px solid', borderColor: 'divider' }}>
-      <Typography variant="subtitle1" gutterBottom>
+      <Typography variant="h6" gutterBottom component="h2" sx={{ color: 'primary.main !important', fontWeight: 700 }}>
         Order summary
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+        {totalItems} item{totalItems !== 1 ? 's' : ''} · Total: {basketTotalPrice.toFixed(2)}
       </Typography>
       <List disablePadding>
         {basketItems.map(item => {
@@ -57,7 +68,7 @@ function BasketPage() {
           return (
             <ListItem key={`${item.orderId}-${item.artworkId}`} sx={{ p: 1, alignItems: 'center' }}>
               <ListItemAvatar>
-                <Avatar variant="rounded" src={item.thumbnailUrl} alt={item.name} sx={{ width: 52, height: 52 }} />
+                <Avatar variant="rounded" src={item.thumbnailUrl} alt={item.name} sx={{ width: 100, height: 100 }} />
               </ListItemAvatar>
               <Box sx={{ ml: 2, flex: 1, minWidth: 0 }}>
                 <Typography variant="body2" noWrap>
@@ -125,16 +136,6 @@ function BasketPage() {
   return (
     <Container maxWidth="lg" sx={{ pt: 3, pb: 4, position: 'relative' }}>
       <PageLoadingOverlay open={basketLoading && hasItems} />
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">Basket</Typography>
-        <Typography variant="body1">Total items: {totalItems}</Typography>
-      </Box>
-
-      {basketStatus && (
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="subtitle1">Status: {basketStatus}</Typography>
-        </Box>
-      )}
 
       {isSummaryMode && (
         <Box sx={{ mb: 3 }}>
@@ -162,9 +163,9 @@ function BasketPage() {
         </Box>
       )}
 
-      {!basketError && !isSummaryMode && hasItems && isEditable && (
+      {!basketError && hasItems && isAddressMode && (
         <Box sx={{ mb: 2 }}>
-          <Typography variant="h6">Order summary</Typography>
+          {/* Summary card is shown inside the address step panel, do not duplicate here */}
         </Box>
       )}
 
@@ -367,78 +368,86 @@ function BasketPage() {
             return (
               <React.Fragment key={`${item.orderId}-${item.artworkId}`}>
                 <ListItem alignItems="flex-start" sx={{ flexDirection: 'column', alignItems: 'stretch' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-                    <ListItemAvatar>
-                      <Avatar variant="rounded" src={item.thumbnailUrl} alt={item.name} />
-                    </ListItemAvatar>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography variant="subtitle1">{item.name}</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {item.description}
-                      </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, width: '100%' }}>
+                    <Box
+                      sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, flex: 1, cursor: 'pointer' }}
+                      onClick={() => navigate(`/artworks/${item.artworkId}`)}
+                    >
+                      <ListItemAvatar>
+                        <Avatar variant="rounded" src={item.thumbnailUrl} alt={item.name} sx={{ width: 150, height: 150 }} />
+                      </ListItemAvatar>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="subtitle1" sx={{ '&:hover': { color: 'primary.main' } }}>
+                          {item.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {truncateDescription(item.description)}
+                        </Typography>
+                      </Box>
                     </Box>
-                    {!isSummaryMode && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  </Box>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 220 }}>
                       <Button
-                        size="small"
+                        size="large"
                         variant="outlined"
                         disabled={!isEditable || basketLoading || updatingItemIds[item.artworkId]}
                         onClick={() => handleItemUpdate(item.artworkId, Math.max(item.quantity - 1, 0), item.printSizeId, item.priceId)}
+                        sx={{ width: 48, height: 48, minWidth: 48, borderWidth: 2, fontSize: '1.25rem' }}
                       >
-                        -
+                        −
                       </Button>
-                      <Typography>{item.quantity}</Typography>
+                      <Typography variant="h6" sx={{ minWidth: 28, textAlign: 'center' }}>{item.quantity}</Typography>
                       <Button
-                        size="small"
+                        size="large"
                         variant="outlined"
                         disabled={!isEditable || basketLoading || updatingItemIds[item.artworkId]}
                         onClick={() => handleItemUpdate(item.artworkId, item.quantity + 1, item.printSizeId, item.priceId)}
+                        sx={{ width: 48, height: 48, minWidth: 48, borderWidth: 2, fontSize: '1.25rem' }}
                       >
                         +
                       </Button>
                     </Box>
-                  )}
                   </Box>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2 }}>
-                    {isSummaryMode ? (
-                      <Box sx={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 2 }}>
-                        <Typography>Size: {item.printSizeName ?? selectedPrintSize?.name ?? 'N/A'}</Typography>
-                        <Typography>Quantity: {item.quantity}</Typography>
-                        <Typography>Price: {item.priceValue != null ? item.priceValue.toFixed(2) : '-'}</Typography>
-                        <Typography>
-                          Total: {item.priceValue != null ? (item.priceValue * item.quantity).toFixed(2) : '-'}
-                        </Typography>
-                      </Box>
-                    ) : (
-                      <FormControl component="fieldset" sx={{ width: '100%' }}>
-                        <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                          Select print size
-                        </Typography>
-                        <RadioGroup
-                          value={currentPrintSizeId != null ? String(currentPrintSizeId) : ''}
-                          onChange={async event => {
-                            const newPrintSizeId = Number(event.target.value);
-                            const selectedSize = printSizeOptions.find(size => size.id === newPrintSizeId);
-                            const newPriceId = selectedSize?.prices[0]?.id;
-                            await handleItemUpdate(item.artworkId, item.quantity, newPrintSizeId, newPriceId);
-                          }}
-                        >
-                          {printSizeOptions.map(size => {
-                            const price = size.prices[0];
-                            const label = price ? `${size.name} - ${price.value.toFixed(2)}` : size.name;
-                            return (
-                              <FormControlLabel
-                                key={size.id}
-                                value={String(size.id)}
-                                control={<Radio />}
-                                label={label}
-                                disabled={!isEditable || basketLoading || updatingItemIds[item.artworkId] || !price}
-                              />
-                            );
-                          })}
-                        </RadioGroup>
-                      </FormControl>
-                    )}
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2, alignItems: 'flex-start' }}>
+                    <Box sx={{ flex: '1 1 320px', minWidth: 240 }}>
+                      {isSummaryMode ? (
+                        <Box sx={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 2 }}>
+                          <Typography>Size: {item.printSizeName ?? selectedPrintSize?.name ?? 'N/A'}</Typography>
+                          <Typography>Quantity: {item.quantity}</Typography>
+                          <Typography>Price: {item.priceValue != null ? item.priceValue.toFixed(2) : '-'}</Typography>
+                          <Typography>
+                            Total: {item.priceValue != null ? (item.priceValue * item.quantity).toFixed(2) : '-'}
+                          </Typography>
+                        </Box>
+                      ) : (
+                        <Box sx={{ width: '100%', mb: 2 }}>
+                          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                            Select print size
+                          </Typography>
+                          <ButtonGroup variant="outlined" size="small" sx={{ flexWrap: 'wrap' }}>
+                            {printSizeOptions.map(size => {
+                              const price = size.prices[0];
+                              const label = price ? `${size.name} - ${price.value.toFixed(2)}` : size.name;
+                              return (
+                                <Button
+                                  key={size.id}
+                                  onClick={async () => {
+                                    const newPriceId = price?.id;
+                                    await handleItemUpdate(item.artworkId, item.quantity, size.id, newPriceId);
+                                  }}
+                                  variant={currentPrintSizeId === size.id ? 'contained' : 'outlined'}
+                                  disabled={!isEditable || basketLoading || updatingItemIds[item.artworkId] || !price}
+                                  sx={{ textTransform: 'none', whiteSpace: 'nowrap' }}
+                                >
+                                  {label}
+                                </Button>
+                              );
+                            })}
+                          </ButtonGroup>
+                        </Box>
+                      )}
+                    </Box>
                   </Box>
                 </ListItem>
                 <Divider component="li" />
