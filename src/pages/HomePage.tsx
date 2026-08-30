@@ -10,7 +10,7 @@ function HomePage() {
   const isCreator = user?.roles?.includes('Creator');
 
   return (
-    <Container maxWidth="lg" sx={{ pt: 3, pb: 4 }}>
+    <Container maxWidth="lg" sx={{ pt: 3, pb: 4, position: 'relative', zIndex: 1 }}>
       <Typography variant="h6" paragraph sx={{ maxWidth: 720, lineHeight: 1.4 }}>
         DummyDruk is a contemporary art gallery exploring the limits of authorship, taste, and technological progress.
       </Typography>

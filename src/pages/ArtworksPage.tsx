@@ -5,6 +5,7 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
+import Collapse from '@mui/material/Collapse';
 import Pagination from '@mui/material/Pagination';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
@@ -26,6 +27,7 @@ function ArtworksPage() {
   const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
   const [filters, setFilters] = useState<TagGroupDto[]>([]);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [authors, setAuthors] = useState<ArtworkAuthorDto[]>([]);
   const [selectedAuthorId, setSelectedAuthorId] = useState<string>('');
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
@@ -103,12 +105,18 @@ function ArtworksPage() {
               Select tags and author to narrow the artwork list. Multiple tags are combined with AND semantics.
             </Typography>
           </Box>
-          <Button variant="outlined" size="small" onClick={clearFilters} disabled={selectedTagIds.length === 0 && !selectedAuthorId}>
-            Clear Filters
-          </Button>
+          <Stack direction="row" spacing={1}>
+            <Button variant="contained" size="small" color="primary" onClick={() => setFiltersOpen(prev => !prev)}>
+              {filtersOpen ? 'Hide filters' : 'Show filters'}
+            </Button>
+            <Button variant="outlined" size="small" onClick={clearFilters} disabled={selectedTagIds.length === 0 && !selectedAuthorId}>
+              Clear Filters
+            </Button>
+          </Stack>
         </Stack>
 
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mt: 2 }}>
+        <Collapse in={filtersOpen} timeout="auto" unmountOnExit>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mt: 2 }}>
           <Box sx={{ minWidth: 240, flex: 1 }}>
             <Typography variant="subtitle1" sx={{ mb: 1 }}>
               Author
@@ -156,6 +164,7 @@ function ArtworksPage() {
             </Box>
           ))}
         </Stack>
+        </Collapse>
       </Paper>
 
       <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="center" spacing={2} sx={{ mb: 2 }}>
