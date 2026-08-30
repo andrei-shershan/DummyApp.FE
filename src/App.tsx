@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom';
+import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -28,16 +28,19 @@ import InviteRegisterRedirectPage from './pages/InviteRegisterRedirectPage';
 import PortalLayout from './components/PortalLayout';
 import PortalHomePage from './pages/PortalHomePage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import AppFooter from './components/AppFooter';
 
 const drawerWidth = 280;
 
 interface NavItem {
   label: string;
+  path?: string;
   onClick: () => void;
 }
 
 function PublicLayout() {
   const theme = useTheme();
+  const location = useLocation();
   const navigate = useNavigate();
   const { basketCount } = useAppContext();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -50,14 +53,17 @@ function PublicLayout() {
   const navItems: NavItem[] = [
     {
       label: 'Artworks',
+      path: '/artworks',
       onClick: () => navigate('/artworks'),
     },
     {
       label: `Basket${basketCount > 0 ? ` (${basketCount})` : ''}`,
+      path: '/basket',
       onClick: () => navigate('/basket'),
     },
     {
       label: 'Orders',
+      path: '/orders',
       onClick: () => navigate('/orders'),
     },
   ];
@@ -69,7 +75,10 @@ function PublicLayout() {
       <List>
         {navItems.map(item => (
           <ListItem key={item.label} disablePadding>
-            <ListItemButton onClick={item.onClick}>
+            <ListItemButton
+              selected={item.path ? location.pathname.startsWith(item.path) : false}
+              onClick={item.onClick}
+            >
               <ListItemText primary={item.label} />
             </ListItemButton>
           </ListItem>
@@ -84,21 +93,46 @@ function PublicLayout() {
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
           <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', maxWidth: 800, px: 2 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', cursor: 'pointer' }} onClick={() => navigate('/') }>
-              <Typography variant="caption" sx={{ textTransform: 'uppercase', opacity: 0.8, letterSpacing: 1 }}>
-                Art Gallery
-              </Typography>
               <Typography variant="h6" noWrap component="div">
-                DummyApp
+                <Box component="span" sx={{ color: 'text.primary', fontWeight: 700 }}>
+                  Dummy
+                </Box>
+                <Box component="span" sx={{ color: 'secondary.main', fontWeight: 700, ml: 0.5 }}>
+                  Druk
+                </Box>
+              </Typography>
+              <Typography variant="caption" sx={{ opacity: 0.72, mt: 0.2 }}>
+                Made by Humans
               </Typography>
             </Box>
 
             {!isMobile && (
               <Box sx={{ display: 'flex', gap: 1 }}>
-                {navItems.map(item => (
-                  <Button key={item.label} color="inherit" onClick={item.onClick}>
-                    {item.label}
-                  </Button>
-                ))}
+                {navItems.map(item => {
+                  const active = item.path ? location.pathname.startsWith(item.path) : false;
+                  return (
+                    <Button
+                      key={item.label}
+                      color="inherit"
+                      variant="text"
+                      onClick={item.onClick}
+                      sx={{
+                        borderBottom: active ? '2px solid' : '2px solid transparent',
+                        borderColor: active ? 'secondary.main' : 'transparent',
+                        borderRadius: 0,
+                        pb: 1,
+                        color: active ? 'text.primary' : 'inherit',
+                        '&:hover': {
+                          borderBottom: '2px solid',
+                          borderColor: 'secondary.main',
+                          backgroundColor: 'transparent',
+                        },
+                      }}
+                    >
+                      {item.label}
+                    </Button>
+                  );
+                })}
               </Box>
             )}
 
@@ -129,6 +163,7 @@ function PublicLayout() {
           <Outlet />
         </Box>
       </Box>
+      <AppFooter />
     </Box>
   );
 }

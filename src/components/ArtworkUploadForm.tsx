@@ -159,7 +159,7 @@ function ArtworkUploadForm({ prerequisites }: ArtworkUploadFormProps) {
             onChange={e => setForm(prev => ({ ...prev, creationDate: e.target.value }))}
             fullWidth
           />
-          <Box sx={{ display: 'grid', gap: 2, border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2 }}>
+          <Box sx={{ display: 'grid', gap: 2, border: '1px solid', borderColor: 'divider', p: 2 }}>
             <Typography variant="subtitle1">Tags and Series</Typography>
             <Autocomplete
               options={seriesOptions}
@@ -225,7 +225,7 @@ function ArtworkUploadForm({ prerequisites }: ArtworkUploadFormProps) {
             Image should be portrait A4, at least 1024px wide, and no more than 10 MB.
           </Typography>
           {form.uploadedImage && (
-            <Box sx={{ width: '100%', maxWidth: 360, aspectRatio: '1 / 1.414', overflow: 'hidden', borderRadius: 2, border: 1, borderColor: 'divider', mt: 1 }}>
+            <Box sx={{ width: '100%', maxWidth: 360, aspectRatio: '1 / 1.414', overflow: 'hidden', border: 1, borderColor: 'divider', mt: 1 }}>
               <Box
                 component="img"
                 src={`data:${form.fileType ?? 'image/png'};base64,${form.uploadedImage}`}

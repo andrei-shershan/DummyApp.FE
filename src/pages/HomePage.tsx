@@ -11,11 +11,14 @@ function HomePage() {
 
   return (
     <Container maxWidth="lg" sx={{ pt: 3, pb: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        Welcome to DummyApp
+      <Typography variant="h6" paragraph sx={{ maxWidth: 720, lineHeight: 1.4 }}>
+        DummyDruk is a contemporary art gallery exploring the limits of authorship, taste, and technological progress.
       </Typography>
-      <Typography variant="body1" paragraph>
-        This application is built with Material UI, global API state, and mobile-first responsive navigation.
+      <Typography variant="body1" paragraph sx={{ maxWidth: 720, color: 'text.secondary', lineHeight: 1.75 }}>
+        We present works created at the intersection of human intention and machine-assisted imagination. Every piece has been carefully generated, selected, named, contextualized, and, where necessary, described as “important.”
+      </Typography>
+      <Typography variant="body1" paragraph sx={{ maxWidth: 720, color: 'text.secondary', lineHeight: 1.75 }}>
+        In an age of infinite images, we believe the real challenge is knowing which ones to take seriously.
       </Typography>
 
       {loading && <Typography>Loading user details...</Typography>}
@@ -27,9 +30,7 @@ function HomePage() {
             <Typography>
               Signed in as <strong>{user.email ?? user.name ?? user.sub}</strong>.
             </Typography>
-          ) : (
-            <Alert severity="info">Please sign in to access creator and admin features.</Alert>
-          )}
+          ) : null}
 
           {isCreator ? (
             <Alert severity="info">Creator dashboard and upload are available on the My Works page.</Alert>

@@ -4,7 +4,6 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
 import { ArtworkDto } from '../types/api';
 
 interface ArtworkCardProps {
@@ -14,12 +13,28 @@ interface ArtworkCardProps {
 
 function ArtworkCard({ artwork, onViewDetails }: ArtworkCardProps) {
   return (
-    <Card>
-      {artwork.imgUrl ? (
-        <Box sx={{ width: '100%', aspectRatio: '1 / 1.414', overflow: 'hidden' }}>
+    <Card
+      onClick={onViewDetails}
+      sx={{
+        width: 250,
+        cursor: 'pointer',
+        transition: 'box-shadow 0.2s ease',
+        '& img': {
+          transition: 'transform 0.3s ease',
+        },
+        '&:hover': {
+          boxShadow: '0 12px 24px rgba(15, 23, 42, 0.24)',
+          '& img': {
+            transform: 'scale(1.10)',
+          },
+        },
+      }}
+    >
+      {(artwork.thumbnailUrl || artwork.imgUrl) ? (
+        <Box sx={{ width: 250, height: 354, overflow: 'hidden' }}>
           <CardMedia
             component="img"
-            image={artwork.imgUrl}
+            image={artwork.thumbnailUrl || artwork.imgUrl}
             alt={artwork.name}
             sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
@@ -45,11 +60,8 @@ function ArtworkCard({ artwork, onViewDetails }: ArtworkCardProps) {
           {artwork.name}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          {artwork.description ?? 'No description available.'}
+          {artwork.creationDate ? new Date(artwork.creationDate).getFullYear() : 'Unknown year'}
         </Typography>
-        <Button sx={{ mt: 2 }} variant="outlined" size="small" onClick={onViewDetails}>
-          View details
-        </Button>
       </CardContent>
     </Card>
   );
