@@ -185,7 +185,7 @@ function ArtworksPage() {
       {error && <Typography color="error">{error}</Typography>}
       {!loading && !error && artworks.length === 0 && <Typography>No artworks found.</Typography>}
 
-      <Grid container spacing={2} sx={{ mt: 1 }}>
+      <Grid container spacing={4} sx={{ mt: 1 }}>
         {artworks.map(artwork => (
           <Grid item xs={12} sm={6} md={4} key={artwork.id}>
             <ArtworkCard artwork={artwork} onViewDetails={() => navigate(`/artworks/${artwork.id}`)} />

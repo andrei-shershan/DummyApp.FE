@@ -156,7 +156,7 @@ function OrdersPage() {
         {!completedLoading && completedLoaded && !completedError && completedOrders.length > 0 && (
           <Box>
             {completedOrders.map(order => (
-              <Box key={order.orderId} sx={{ mb: 4, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
+              <Box key={order.orderId} sx={{ mb: 4, p: 3, border: '1px solid', borderColor: 'divider' }}>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 1, mb: 2 }}>
                   <Typography variant="h6">Order {order.orderId}</Typography>
                   <Typography variant="body2" color="text.secondary">Status: {order.status}</Typography>

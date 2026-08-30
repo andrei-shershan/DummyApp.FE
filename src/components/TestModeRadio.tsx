@@ -118,10 +118,9 @@ function TestModeRadio({ isAuthenticated }: Props) {
   const buttonStyle = (disabled: boolean) => ({
     padding: '0.75rem 1.25rem',
     fontSize: '1rem',
-    borderRadius: '0.5rem',
-    border: '1px solid #61dafb',
-    background: disabled ? '#3d6f8b' : '#61dafb',
-    color: '#0b1321',
+    border: `1px solid ${disabled ? '#cbd5e1' : '#2563eb'}`,
+    background: disabled ? '#cbd5e1' : '#2563eb',
+    color: disabled ? '#475569' : '#ffffff',
     cursor: disabled ? 'not-allowed' : 'pointer',
   });
 
@@ -140,14 +139,14 @@ function TestModeRadio({ isAuthenticated }: Props) {
           </button>
         </div>
         <div style={{ minWidth: '220px', textAlign: 'center', marginTop: '0.5rem' }}>
-          {result ? <pre style={{ color: '#85e89d', fontSize: '0.8rem', textAlign: 'left' }}>{result}</pre> : null}
+          {result ? <pre style={{ color: '#2563eb', fontSize: '0.8rem', textAlign: 'left' }}>{result}</pre> : null}
           {error ? <div style={{ color: '#ffb3b3' }}>Error: {error}</div> : null}
         </div>
       </div>
 
       {/* testX2 – requires user auth */}
       <div>
-        <div style={{ marginBottom: '0.5rem', fontSize: '0.85rem', color: isAuthenticated ? '#85e89d' : '#f97583' }}>
+        <div style={{ marginBottom: '0.5rem', fontSize: '0.85rem', color: isAuthenticated ? '#2563eb' : '#d14343' }}>
           testX2 — requires user authorization (PKCE + BFF)
           {!isAuthenticated && ' · Click "Sign In" above'}
         </div>
@@ -158,15 +157,15 @@ function TestModeRadio({ isAuthenticated }: Props) {
             disabled={loadingX2}
             style={{
               ...buttonStyle(loadingX2),
-              border: '1px solid #85e89d',
-              background: loadingX2 ? '#3d6f8b' : (isAuthenticated ? '#85e89d' : '#444'),
+              border: '1px solid #2563eb',
+              background: loadingX2 ? '#94a3b8' : (isAuthenticated ? '#2563eb' : '#475569'),
             }}
           >
             {loadingX2 ? 'Request...' : 'Send testX2'}
           </button>
         </div>
         <div style={{ minWidth: '220px', textAlign: 'center', marginTop: '0.5rem' }}>
-          {resultX2 ? <pre style={{ color: '#85e89d', fontSize: '0.8rem', textAlign: 'left' }}>{resultX2}</pre> : null}
+          {resultX2 ? <pre style={{ color: '#2563eb', fontSize: '0.8rem', textAlign: 'left' }}>{resultX2}</pre> : null}
           {errorX2 ? <div style={{ color: '#ffb3b3' }}>Error: {errorX2}</div> : null}
         </div>
       </div>
@@ -183,15 +182,15 @@ function TestModeRadio({ isAuthenticated }: Props) {
             disabled={loadingMessage}
             style={{
               ...buttonStyle(loadingMessage),
-              border: '1px solid #e3b341',
-              background: loadingMessage ? '#3d6f8b' : '#e3b341',
+              border: '1px solid #2563eb',
+              background: loadingMessage ? '#94a3b8' : '#2563eb',
             }}
           >
             {loadingMessage ? 'Request...' : 'Get Message'}
           </button>
         </div>
         <div style={{ minWidth: '220px', textAlign: 'center', marginTop: '0.5rem' }}>
-          {message ? <div style={{ color: '#e3b341', fontSize: '0.95rem' }}>{message}</div> : null}
+          {message ? <div style={{ color: '#2563eb', fontSize: '0.95rem' }}>{message}</div> : null}
           {errorMessage ? <div style={{ color: '#ffb3b3' }}>Error: {errorMessage}</div> : null}
         </div>
       </div>

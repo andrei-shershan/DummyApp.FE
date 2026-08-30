@@ -47,7 +47,7 @@ function BasketPage() {
   const basketTotalPrice = basketItems.reduce((sum, item) => sum + ((item.priceValue ?? 0) * item.quantity), 0);
 
   const basketSummaryCompact = () => (
-    <Box sx={{ mb: 3, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+    <Box sx={{ mb: 3, p: 2, border: '1px solid', borderColor: 'divider' }}>
       <Typography variant="subtitle1" gutterBottom>
         Order summary
       </Typography>
@@ -139,7 +139,7 @@ function BasketPage() {
       {isSummaryMode && (
         <Box sx={{ mb: 3 }}>
           {basketSummaryCompact()}
-          <Box sx={{ mb: 2, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+          <Box sx={{ mb: 2, p: 2, border: '1px solid', borderColor: 'divider' }}>
             <Typography variant="h6" gutterBottom>
               Delivery details
             </Typography>

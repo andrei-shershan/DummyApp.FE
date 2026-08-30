@@ -36,23 +36,23 @@ function AdminPanel() {
 
   return (
     <section style={{ width: '100%', maxWidth: '900px', marginTop: '1.5rem', textAlign: 'left' }}>
-      <h2 style={{ color: '#61dafb' }}>Admin Panel</h2>
+      <h2 style={{ color: '#2563eb' }}>Admin Panel</h2>
       {loading && <p>Loading admin data...</p>}
-      {error && <p style={{ color: '#f97583' }}>{error}</p>}
+      {error && <p style={{ color: '#d14343' }}>{error}</p>}
 
       {!loading && !error && (
         <>
           <div style={{ marginBottom: '2rem' }}>
-            <h3 style={{ color: '#85e89d' }}>Users</h3>
+            <h3 style={{ color: '#1f2937' }}>Users</h3>
             {adminUsers.length === 0 ? (
               <p>No users found.</p>
             ) : (
               <div style={{ display: 'grid', gap: '1rem' }}>
                 {adminUsers.map(user => (
-                  <article key={user.id} style={{ padding: '1rem', borderRadius: '0.6rem', border: '1px solid #444', background: '#111827' }}>
+                  <article key={user.id} style={{ padding: '1rem', border: '1px solid #d1d5db', background: '#f8fafc' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <p style={{ margin: '0.25rem 0', color: '#fff' }}><strong>{user.email}</strong></p>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#aaa' }}>
+                      <p style={{ margin: '0.25rem 0', color: '#111827' }}><strong>{user.email}</strong></p>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#475569' }}>
                         <span>{user.isActive ? 'Active' : 'Inactive'}</span>
                         <input
                           type="checkbox"
@@ -61,19 +61,19 @@ function AdminPanel() {
                         />
                       </label>
                     </div>
-                    <p style={{ margin: '0.25rem 0', color: '#aaa' }}><strong>Name:</strong> {user.firstName} {user.lastName}</p>
-                    <p style={{ margin: '0.25rem 0', color: '#aaa' }}><strong>Roles:</strong> {user.roles.join(', ') || 'None'}</p>
+                    <p style={{ margin: '0.25rem 0', color: '#475569' }}><strong>Name:</strong> {user.firstName} {user.lastName}</p>
+                    <p style={{ margin: '0.25rem 0', color: '#475569' }}><strong>Roles:</strong> {user.roles.join(', ') || 'None'}</p>
                   </article>
                 ))}
               </div>
             )}
           </div>
           <div>
-            <h3 style={{ color: '#85e89d' }}>Roles</h3>
+            <h3 style={{ color: '#1f2937' }}>Roles</h3>
             {adminRoles.length === 0 ? (
               <p>No roles found.</p>
             ) : (
-              <ul style={{ color: '#aaa', marginTop: '0.75rem' }}>
+              <ul style={{ color: '#475569', marginTop: '0.75rem' }}>
                 {adminRoles.map(role => (
                   <li key={role.id} style={{ marginBottom: '0.35rem' }}>
                     <strong>{role.name}</strong> ({role.id})

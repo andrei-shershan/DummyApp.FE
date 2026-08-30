@@ -17,8 +17,15 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { BFF_HOST } from '../config';
 import { useAppContext } from '../context/AppContext';
+import AppFooter from './AppFooter';
 
 const drawerWidth = 280;
+
+interface NavItem {
+  label: string;
+  path?: string;
+  onClick: () => void;
+}
 
 function PortalLayout() {
   const theme = useTheme();
@@ -74,9 +81,10 @@ function PortalLayout() {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const navItems = useMemo(() => {
-    const items = [
+    const items: NavItem[] = [
       {
         label: 'Portal Home',
+        path: '/portal',
         onClick: () => navigate('/portal'),
       },
     ];
@@ -85,6 +93,7 @@ function PortalLayout() {
       if (isCreator || isAdmin) {
         items.push({
           label: 'My Account',
+          path: '/portal/my-account',
           onClick: () => navigate('/portal/my-account'),
         });
       }
@@ -92,6 +101,7 @@ function PortalLayout() {
       if (isCreator || isAdmin) {
         items.push({
           label: 'MyArtworks',
+          path: '/portal/my-works',
           onClick: () => navigate('/portal/my-works'),
         });
       }
@@ -99,11 +109,13 @@ function PortalLayout() {
       if (isAdmin) {
         items.push({
           label: 'Admin Panel',
+          path: '/portal/admin',
           onClick: () => navigate('/portal/admin'),
         });
 
         items.push({
           label: 'Analytics',
+          path: '/portal/analytics',
           onClick: () => navigate('/portal/analytics'),
         });
       }
@@ -139,21 +151,46 @@ function PortalLayout() {
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
           <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', maxWidth: 800, px: 2 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', cursor: 'pointer' }} onClick={() => navigate('/portal')}>
-              <Typography variant="caption" sx={{ textTransform: 'uppercase', opacity: 0.8, letterSpacing: 1 }}>
-                Admin Portal
-              </Typography>
               <Typography variant="h6" noWrap component="div">
-                DummyApp
+                <Box component="span" sx={{ color: 'text.primary', fontWeight: 700 }}>
+                  Dummy
+                </Box>
+                <Box component="span" sx={{ color: 'secondary.main', fontWeight: 700, ml: 0.5 }}>
+                  Druk
+                </Box>
+              </Typography>
+              <Typography variant="caption" sx={{ opacity: 0.72, mt: 0.2 }}>
+                Made by Humans
               </Typography>
             </Box>
 
             {!isMobile && (
               <Box sx={{ display: 'flex', gap: 1 }}>
-                {navItems.map(item => (
-                  <Button key={item.label} color="inherit" onClick={item.onClick}>
-                    {item.label}
-                  </Button>
-                ))}
+                {navItems.map(item => {
+                  const active = item.path ? location.pathname.startsWith(item.path) : false;
+                  return (
+                    <Button
+                      key={item.label}
+                      color="inherit"
+                      variant="text"
+                      onClick={item.onClick}
+                      sx={{
+                        borderBottom: active ? '2px solid' : '2px solid transparent',
+                        borderColor: active ? 'secondary.main' : 'transparent',
+                        borderRadius: 0,
+                        pb: 1,
+                        color: active ? 'text.primary' : 'inherit',
+                        '&:hover': {
+                          borderBottom: '2px solid',
+                          borderColor: 'secondary.main',
+                          backgroundColor: 'transparent',
+                        },
+                      }}
+                    >
+                      {item.label}
+                    </Button>
+                  );
+                })}
               </Box>
             )}
 
@@ -183,7 +220,10 @@ function PortalLayout() {
             <List>
               {navItems.map(item => (
                 <ListItem key={item.label} disablePadding>
-                  <ListItemButton onClick={item.onClick}>
+                  <ListItemButton
+                    selected={item.path ? location.pathname.startsWith(item.path) : false}
+                    onClick={item.onClick}
+                  >
                     <ListItemText primary={item.label} />
                   </ListItemButton>
                 </ListItem>
@@ -198,6 +238,7 @@ function PortalLayout() {
           <Outlet />
         </Box>
       </Box>
+      <AppFooter />
     </Box>
   );
 }

@@ -7,6 +7,13 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useAppContext } from '../context/AppContext';
 import { addArtworkToBasket } from '../api/basket';
 import PageLoadingOverlay from '../components/PageLoadingOverlay';
@@ -22,6 +29,7 @@ function ArtworkDetailsPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [basketError, setBasketError] = useState<string | null>(null);
   const [basketLoading, setBasketLoading] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -83,51 +91,97 @@ function ArtworkDetailsPage() {
       {selectedArtwork && !loadingDetail && (
         <Card>
           <CardContent>
-            <Typography variant="h4" gutterBottom>
-              {selectedArtwork.name}
-            </Typography>
-            <Typography variant="body1" paragraph>
-              {selectedArtwork.description ?? 'No description provided.'}
-            </Typography>
-            <Typography variant="body2">Creator ID: {selectedArtwork.creatorId ?? 'Unknown'}</Typography>
-            <Typography variant="body2">Created: {(selectedArtwork.creationDate) ? new Date(selectedArtwork.creationDate).toLocaleDateString() : 'Unknown'}</Typography>
-            <Typography variant="body2" paragraph>
-              Status: {selectedArtwork.isActive ? 'Active' : 'Inactive'}
-            </Typography>
-            {(selectedArtwork.imgUrl ?? selectedArtwork.imgUrl) && (
-              <Box sx={{ width: '100%', aspectRatio: '1 / 1.414', overflow: 'hidden', borderRadius: 2, mb: 3 }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 5 }}>
+              <Box sx={{ width: { xs: '100%', md: 250 }, minWidth: { xs: '100%', md: 250 }, flexShrink: 0 }}>
                 <Box
-                  component="img"
-                  src={selectedArtwork.imgUrl ?? selectedArtwork.imgUrl}
-                  alt={selectedArtwork.name}
-                  sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
+                  sx={{ width: '100%', minWidth: 250, height: 354, position: 'relative', overflow: 'hidden', bgcolor: 'grey.100', cursor: 'pointer' }}
+                  onClick={() => setPreviewOpen(true)}
+                >
+                  <Box
+                    component="img"
+                    src={selectedArtwork.thumbnailUrl || selectedArtwork.imgUrl || ''}
+                    alt={selectedArtwork.name}
+                    sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                </Box>
+                <Box sx={{ mt: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                  {isArtworkInBasket(selectedArtwork.id) ? (
+                    <Button variant="contained" color="secondary" onClick={() => navigate('/basket')}>
+                      View basket
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="contained"
+                      startIcon={<ShoppingCartIcon />}
+                      onClick={handleAddToBasket}
+                      disabled={actionLoading || basketLoading}
+                    >
+                      {basketLoading ? 'Adding...' : 'Add to basket'}
+                    </Button>
+                  )}
+                  {selectedArtwork.imgUrl ? (
+                    <Button
+                      variant="outlined"
+                      startIcon={<VisibilityIcon />}
+                      onClick={() => setPreviewOpen(true)}
+                    >
+                      100%
+                    </Button>
+                  ) : null}
+                </Box>
               </Box>
-            )}
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
-              {isArtworkInBasket(selectedArtwork.id) ? (
-                <Button variant="contained" color="secondary" onClick={() => navigate('/basket')}>
-                  View basket
-                </Button>
-              ) : (
-                <Button variant="contained" onClick={handleAddToBasket} disabled={actionLoading || basketLoading}>
-                  {basketLoading ? 'Adding...' : 'Add to basket'}
-                </Button>
-              )}
-              {showArtworkActions && (
-                <Button variant="contained" onClick={handleToggle} disabled={actionLoading || basketLoading}>
-                  {actionLoading ? 'Saving...' : selectedArtwork.isActive ? 'Set Inactive' : 'Set Active'}
-                </Button>
-              )}
+
+              <Box sx={{ flex: 1, minWidth: { xs: '100%', md: 250 } }}>
+                <Typography variant="h4" gutterBottom>
+                  {selectedArtwork.name}
+                </Typography>
+                <Typography variant="body2" gutterBottom color="text.secondary">
+                  Creator: {selectedArtwork.creatorId ?? 'Unknown'}
+                </Typography>
+                <Typography variant="body2" gutterBottom color="text.secondary">
+                  Created: {selectedArtwork.creationDate ? new Date(selectedArtwork.creationDate).toLocaleDateString() : 'Unknown'}
+                </Typography>
+                <Typography variant="body1" paragraph sx={{ mt: 2 }}>
+                  {selectedArtwork.description ?? 'No description provided.'}
+                </Typography>
+
+                {showArtworkActions && (
+                  <Button variant="contained" onClick={handleToggle} disabled={actionLoading || basketLoading}>
+                    {actionLoading ? 'Saving...' : selectedArtwork.isActive ? 'Set Inactive' : 'Set Active'}
+                  </Button>
+                )}
+
+                {(actionError || basketError) && (
+                  <Typography color="error" sx={{ mt: 2 }}>
+                    {basketError ?? actionError}
+                  </Typography>
+                )}
+              </Box>
             </Box>
-            {(actionError || basketError) && (
-              <Typography color="error" sx={{ mt: 2 }}>
-                {basketError ?? actionError}
-              </Typography>
-            )}
           </CardContent>
         </Card>
       )}
+
+      <Dialog open={previewOpen} onClose={() => setPreviewOpen(false)} maxWidth="lg" fullWidth>
+        <DialogTitle sx={{ m: 0, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          View full size
+          <IconButton aria-label="close" onClick={() => setPreviewOpen(false)}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 0, backgroundColor: 'rgba(0,0,0,0.92)' }}>
+          <Box sx={{ width: '100%', minHeight: '60vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            {selectedArtwork?.imgUrl ? (
+              <Box
+                component="img"
+                src={selectedArtwork.imgUrl}
+                alt={selectedArtwork.name}
+                sx={{ maxWidth: '100%', maxHeight: '85vh', objectFit: 'contain' }}
+              />
+            ) : null}
+          </Box>
+        </DialogContent>
+      </Dialog>
     </Container>
   );
 }
